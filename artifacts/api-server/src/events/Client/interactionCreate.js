@@ -198,6 +198,9 @@ module.exports = {
 
         const args = [];
         if (interaction.options) {
+          const subcommand = interaction.options.getSubcommand(false);
+          if (subcommand) args.push(subcommand);
+
           const action = interaction.options.getString('action');
           const channel = interaction.options.getChannel('channel');
           const prefix = interaction.options.getString('prefix');

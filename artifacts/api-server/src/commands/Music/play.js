@@ -55,7 +55,7 @@ module.exports = {
     }
 
     try {
-      let searchEngine = 'ytmsearch';
+      let searchEngine = 'ytsearch';
       try {
         const userPref = client.db.userpreferences.get(interaction.user.id);
         if (userPref?.musicSource) {
@@ -211,7 +211,7 @@ module.exports = {
       if (markdownMatch) query = markdownMatch[1];
 
       const isUrl = /^https?:\/\//.test(query);
-      let searchEngine = 'ytmsearch';
+      let searchEngine = 'ytsearch';
 
       if (!isUrl) {
         try {
@@ -609,11 +609,11 @@ module.exports = {
           if (userPref && userPref.musicSource) {
             searchOptions.engine = userPref.musicSource;
           } else {
-            searchOptions.engine = 'ytmsearch';
+            searchOptions.engine = 'ytsearch';
           }
         } catch (error) {
           console.error("Error fetching user preference:", error);
-          searchOptions.engine = 'ytmsearch';
+          searchOptions.engine = 'ytsearch';
         }
       }
     }
@@ -800,7 +800,7 @@ module.exports = {
 
       if (query) {
         const isUrl = /^https?:\/\//.test(query);
-        let searchEngine = 'ytmsearch';
+        let searchEngine = 'ytsearch';
 
         try {
           const userPref = client.db.userpreferences.get(message.author.id);
@@ -1175,7 +1175,7 @@ module.exports = {
 async function performSmartSelection(query, requester, client) {
   const allSources = [
     { engine: 'ytsearch', name: 'YouTube', emoji: client.emoji.youtube },
-    { engine: 'ytmsearch', name: 'YouTube Music', emoji: client.emoji.ytmusic },
+    { engine: 'ytsearch', name: 'YouTube Music', emoji: client.emoji.ytmusic },
     { engine: 'spsearch', name: 'Spotify', emoji: client.emoji.spotify },
     { engine: 'amsearch', name: 'Apple Music', emoji: client.emoji.applemusic },
     { engine: 'dzsearch', name: 'Deezer', emoji: client.emoji.deezer },
