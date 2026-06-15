@@ -5,18 +5,17 @@ const {
   ContainerBuilder,
   TextDisplayBuilder,
   SeparatorBuilder,
-  MessageFlags
-} = require("discord.js");
-const { convertTime } = require("../../utils/convert.js");
-const emoji = require("../../emojis.js");
+  MessageFlags,
+} = require('discord.js');
+const { convertTime } = require('../../utils/convert.js');
 
 module.exports = {
-  name: "queue",
-  aliases: ["q"],
-  category: "Music",
-  description: "Show the server queue",
+  name: 'queue',
+  aliases: ['q'],
+  category: 'Music',
+  description: 'Show the server queue',
   args: false,
-  usage: "",
+  usage: '',
   userPerms: [],
   owner: false,
   player: true,
@@ -25,180 +24,170 @@ module.exports = {
   slashOptions: [],
 
   async slashExecute(interaction, client) {
-    const interactionWrapper = {
+    const wrapper = {
       guild: interaction.guild,
       channel: interaction.channel,
       author: interaction.user,
       member: interaction.member,
       createdTimestamp: interaction.createdTimestamp,
-      reply: async (options) => {
-        if (interaction.deferred) {
-          return await interaction.editReply(options);
-        } else if (interaction.replied) {
-          return await interaction.followUp(options);
-        } else {
-          return await interaction.reply(options);
-        }
+      reply: async (opts) => {
+        if (interaction.deferred) return interaction.editReply(opts);
+        if (interaction.replied)  return interaction.followUp(opts);
+        return interaction.reply(opts);
       },
     };
-
-    const args = [];
-    if (interaction.options) {
-      const options = interaction.options.data;
-      for (const option of options) {
-        if (option.value !== undefined) {
-          args.push(option.value.toString());
-        }
-      }
-    }
-
-    const prefix = client.prefix;
-    return this.execute(interactionWrapper, args, client, prefix);
+    return this.execute(wrapper, [], client, client.prefix);
   },
 
   async execute(message, args, client, prefix) {
+    const e = client.emoji;
     const player = client.manager.players.get(message.guild.id);
 
-    if (!player.queue.current) {
-      const errorDisplay = new TextDisplayBuilder()
-        .setContent(`**${client.emoji.cross} Nothing is playing right now.**`);
-
+    if (!player?.queue?.current) {
       const container = new ContainerBuilder()
-        .addTextDisplayComponents(errorDisplay);
-
-      return message.reply({
-        components: [container],
-        flags: MessageFlags.IsComponentsV2
-      });
+        .setAccentColor(0x5B2D8E)
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(`**${e.cross} Nothing is playing right now.**`)
+        );
+      return message.reply({ components: [container], flags: MessageFlags.IsComponentsV2 });
     }
 
-    const queue = player.queue;
-
-    const multiple = 10;
-    const pages = Math.ceil((queue.length || 1) / multiple);
-
-    let page = 0;
-
+    const queue   = player.queue;
     const current = queue.current;
-    const currDuration = convertTime(current.length || 0);
+    const PER_PAGE = 10;
+    const pages   = Math.max(1, Math.ceil(queue.length / PER_PAGE));
+    let   page    = 0;
 
-    let totalDuration = current.length || 0;
-    for (const track of queue) {
-      if (track) totalDuration += (track.length || 0);
-    }
+    let totalMs = current.length || 0;
+    for (const t of queue) totalMs += (t.length || 0);
 
-    const generateContainer = (page) => {
-      const start = page * multiple;
-      const queueList = queue.slice(start, start + multiple);
+    const loopIcon = () => {
+      const mode = player.loop || 'none';
+      if (mode === 'track') return ` ${e.loop || '🔁'} *track loop*`;
+      if (mode === 'queue') return ` ${e.loop || '🔁'} *queue loop*`;
+      return '';
+    };
 
-      const headerDisplay = new TextDisplayBuilder()
-        .setContent(`### ${client.emoji.info} Music Queue`);
+    function buildContainer(pg) {
+      const start     = pg * PER_PAGE;
+      const slice     = queue.slice(start, start + PER_PAGE);
+      const totalStr  = convertTime(totalMs);
 
-      const separator1 = new SeparatorBuilder();
+      // ── Header
+      const header = new TextDisplayBuilder()
+        .setContent(
+          `${e.queue || '📋'} **Music Queue** — Page **${pg + 1}/${pages}**${loopIcon()}\n` +
+          `${e.duration || '⏱️'} Total runtime: \`${totalStr}\` • **${queue.length + 1}** track${queue.length !== 0 ? 's' : ''}`
+        );
 
-      const currentDisplay = new TextDisplayBuilder()
-        .setContent(`**\`0\` | [${current.title}](${current.uri}) - \`${currDuration}\`**`);
+      const sep1 = new SeparatorBuilder();
 
-      const separator2 = new SeparatorBuilder();
-
-      const queueText = queueList.map((track, i) =>
-        `**\`${start + i + 1}\` | [${track.title}](${track.uri}) - \`${convertTime(track.length)}\`**`
-      ).join('\n');
+      // ── Now Playing
+      const nowText = new TextDisplayBuilder()
+        .setContent(
+          `${e.play || '▶️'} **Now Playing**\n` +
+          `**[${current.title}](${current.uri || current.url})** — \`${convertTime(current.length || 0)}\``
+        );
 
       const container = new ContainerBuilder()
-        .addTextDisplayComponents(headerDisplay)
-        .addSeparatorComponents(separator1)
-        .addTextDisplayComponents(currentDisplay);
+        .setAccentColor(0x5B2D8E)
+        .addTextDisplayComponents(header)
+        .addSeparatorComponents(sep1)
+        .addTextDisplayComponents(nowText);
 
-      if (queueText) {
-        const queueDisplay = new TextDisplayBuilder()
-          .setContent(queueText);
+      // ── Up next
+      if (slice.length > 0) {
+        const lines = slice.map((t, i) =>
+          `\`${start + i + 1}\` [${t.title}](${t.uri || t.url}) — \`${convertTime(t.length || 0)}\``
+        ).join('\n');
 
         container
-          .addSeparatorComponents(separator2)
-          .addTextDisplayComponents(queueDisplay);
+          .addSeparatorComponents(new SeparatorBuilder())
+          .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`${e.note || '🎵'} **Up Next**\n${lines}`)
+          );
+      } else if (queue.length === 0) {
+        container
+          .addSeparatorComponents(new SeparatorBuilder())
+          .addTextDisplayComponents(
+            new TextDisplayBuilder().setContent(`*No tracks queued. Use \`/play\` to add more!*`)
+          );
       }
 
       return container;
-    };
-
-    const row = new ActionRowBuilder().addComponents(
-      new ButtonBuilder()
-        .setCustomId("home")
-        .setLabel("Home")
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId("previous")
-        .setLabel("Previous")
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId("next")
-        .setLabel("Next")
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId("close")
-        .setLabel("Close")
-        .setStyle(ButtonStyle.Secondary)
-    );
-
-    const components = [generateContainer(0)];
-    if (queue.length > 10) {
-      components.push(row);
     }
+
+    function buildNavRow() {
+      return new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('home')
+          .setEmoji(e.info || 'ℹ️')
+          .setLabel('First')
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+          .setCustomId('previous')
+          .setEmoji(e.previous || '⏮️')
+          .setLabel('Prev')
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+          .setCustomId('next')
+          .setEmoji(e.skip || '⏭️')
+          .setLabel('Next')
+          .setStyle(ButtonStyle.Secondary),
+        new ButtonBuilder()
+          .setCustomId('close')
+          .setEmoji(e.stop || '⏹️')
+          .setLabel('Close')
+          .setStyle(ButtonStyle.Danger),
+      );
+    }
+
+    const hasPages = pages > 1;
+    const components = hasPages
+      ? [buildContainer(0), buildNavRow()]
+      : [buildContainer(0)];
 
     const queueMsg = await message.channel.send({
       components,
-      flags: MessageFlags.IsComponentsV2
+      flags: MessageFlags.IsComponentsV2,
     });
 
-    if (queue.length > 10) {
-      const collector = queueMsg.createMessageComponentCollector({
-        filter: (b) => {
-          if (b.user.id === message.author.id) return true;
+    if (!hasPages) return;
 
-          const errorDisplay = new TextDisplayBuilder()
-            .setContent(`**${client.emoji.cross} Only ${message.author.tag} can use these buttons!**`);
+    const collector = queueMsg.createMessageComponentCollector({
+      filter: (b) => {
+        if (b.user.id === message.author.id) return true;
+        const c = new ContainerBuilder()
+          .setAccentColor(0x5B2D8E)
+          .addTextDisplayComponents(
+            new TextDisplayBuilder()
+              .setContent(`**${e.cross} Only ${message.author.tag} can use these buttons.**`)
+          );
+        b.reply({ components: [c], flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2 });
+        return false;
+      },
+      idle: 30000,
+    });
 
-          const errorContainer = new ContainerBuilder()
-            .addTextDisplayComponents(errorDisplay);
+    collector.on('collect', async (btn) => {
+      if (!btn.deferred) await btn.deferUpdate().catch(() => {});
 
-          b.reply({
-            components: [errorContainer],
-            flags: MessageFlags.Ephemeral | MessageFlags.IsComponentsV2
-          });
-          return false;
-        },
-        idle: 20000
-      });
+      if      (btn.customId === 'home')     page = 0;
+      else if (btn.customId === 'previous') page = page > 0 ? page - 1 : pages - 1;
+      else if (btn.customId === 'next')     page = page + 1 < pages ? page + 1 : 0;
+      else if (btn.customId === 'close') {
+        collector.stop();
+        return queueMsg.delete().catch(() => {});
+      }
 
-      collector.on("collect", async (button) => {
-        if (!button.deferred) await button.deferUpdate().catch(() => { });
+      await queueMsg.edit({
+        components: [buildContainer(page), buildNavRow()],
+        flags: MessageFlags.IsComponentsV2,
+      }).catch(() => {});
+    });
 
-        if (button.customId === "previous") {
-          page = page > 0 ? --page : pages - 1;
-        } else if (button.customId === "home") {
-          page = 0;
-        } else if (button.customId === "next") {
-          page = page + 1 < pages ? ++page : 0;
-        } else if (button.customId === "close") {
-          collector.stop();
-          return await queueMsg.delete().catch(() => { });
-        }
-
-        const updatedComponents = [generateContainer(page), row];
-
-        await queueMsg.edit({
-          components: updatedComponents,
-          flags: MessageFlags.IsComponentsV2
-        }).catch(() => { });
-      });
-
-      collector.on("end", () => {
-        queueMsg.edit({
-          components: [generateContainer(page)]
-        }).catch(() => { });
-      });
-    }
-  }
+    collector.on('end', () => {
+      queueMsg.edit({ components: [buildContainer(page)] }).catch(() => {});
+    });
+  },
 };
-

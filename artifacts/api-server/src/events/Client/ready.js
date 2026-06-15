@@ -30,6 +30,12 @@ module.exports = {
       }
     }
 
+    // Initialize Discord Application Emojis (upgrades client.emoji.* from Unicode → custom)
+    const { initAppEmojis } = require('../../utils/appEmojis');
+    initAppEmojis(client).catch(err => {
+      client.logger.log(`App emoji init error: ${err.message}`, 'warn');
+    });
+
     client.invites = new Map();
     for (const [guildId, guild] of client.guilds.cache) {
       try {

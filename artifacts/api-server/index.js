@@ -6,7 +6,7 @@ dns.setDefaultResultOrder("ipv4first");
 const PORT = process.env.PORT || 8080;
 http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify({ status: "ok", bot: "Groove Music Bot" }));
+  res.end(JSON.stringify({ status: "ok", bot: "Keren Wave" }));
 }).listen(PORT, () => {
   console.log(`[Health] HTTP health server running on port ${PORT}`);
 });
