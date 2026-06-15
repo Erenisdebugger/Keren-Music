@@ -18,7 +18,11 @@ run = "cd artifacts/api-server && node --no-warnings Shard.js"
 args = ["node", "--no-warnings", "Shard.js"]
 
 [services.production.run.env]
+PORT = "8080"
 NODE_ENV = "production"
+
+[services.production.health.startup]
+path = "/api"
 
 [services.production.deployConfig]
 deploymentTarget = "vm"

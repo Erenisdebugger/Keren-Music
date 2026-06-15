@@ -1,7 +1,15 @@
 require('dotenv').config();
+const http = require("http");
 const dns = require("dns");
 dns.setDefaultResultOrder("ipv4first");
 
+const PORT = process.env.PORT || 8080;
+http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ status: "ok", bot: "Groove Music Bot" }));
+}).listen(PORT, () => {
+  console.log(`[Health] HTTP health server running on port ${PORT}`);
+});
 
 const { setGlobalDispatcher, Agent } = require("undici");
 setGlobalDispatcher(new Agent({
@@ -11,11 +19,9 @@ setGlobalDispatcher(new Agent({
   pipelining: 1
 }));
 
-const { Collection } = require("discord.js");
 const MusicBot = require("./src/structures/MusicClient");
 const initializeCleanup = require("./src/events/Client/PremiumChecks");
 const Dokdo = require("dokdo");
-const config = require("./src/config");
 
 const client = new MusicBot();
 module.exports = client;
@@ -29,7 +35,6 @@ client.Jsk = new Dokdo.Client(client, {
 });
 
 process.env.SHELL = process.platform === "win32" ? "powershell" : "bash";
-
 
 const emojis = require("./src/emojis");
 client.emoji = emojis;
