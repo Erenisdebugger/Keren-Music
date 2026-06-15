@@ -1,0 +1,9 @@
+node_modules
+artifacts/api-server/node_modules
+artifacts/mockup-sandbox
+lib
+scripts
+.git
+*.log
+.env
+README.md
