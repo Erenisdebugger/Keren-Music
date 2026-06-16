@@ -14,7 +14,6 @@ module.exports = {
     aliases: ['developer', 'architect', 'kerendev'],
     description: 'Classified system intel — Keren OS Architect profile.',
     category: 'Information',
-    noSlash: true,
     slashOptions: [],
 
     async slashExecute(interaction, client) {

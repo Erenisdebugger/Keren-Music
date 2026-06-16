@@ -9,6 +9,7 @@ const emoji = require("../../emojis");
 
 module.exports = {
     name: "checkvanity",
+    noSlash: true,
     category: "Utility",
     description: "Check if a vanity URL is available or taken",
     aliases: ["cv", "vanitycheck"],
