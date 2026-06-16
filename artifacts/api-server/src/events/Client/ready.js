@@ -112,10 +112,9 @@ module.exports = {
     setInterval(() => {
       const totalMembers = client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0);
       const statuses = [
-        `🌊 Serving ${client.guilds.cache.size} Servers`,
-        `🎵 Use /play to start listening`,
-        `🎧 Keren Wave — GHORA Musical Bliss`,
-        `🔊 High Quality | 24/7 Music`
+        `KEREN WAVE | GHORA`,
+        `ALWAYS FIND EREN FOR HELP`,
+        `MAINTAINED BY KEREN OS`
       ];
 
       const status = statuses[Math.floor(Math.random() * statuses.length)];
