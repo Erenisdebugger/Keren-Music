@@ -114,7 +114,7 @@ module.exports = {
       const statuses = [
         `🌊 Serving ${client.guilds.cache.size} Servers`,
         `🎵 Use /play to start listening`,
-        `🎧 Keren Wave — Pure Musical Bliss`,
+        `🎧 Keren Wave — GHORA Musical Bliss`,
         `🔊 High Quality | 24/7 Music`
       ];
 
