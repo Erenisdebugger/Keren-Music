@@ -17,7 +17,7 @@ module.exports = {
   description: "Add/remove global no-prefix access",
   args: false,
   usage: "<add/remove> <@user>",
-  owner: false,
+  owner: true,
   rank: 'Admin',
 
   slashOptions: [
