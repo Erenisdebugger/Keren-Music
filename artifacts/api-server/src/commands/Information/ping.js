@@ -7,132 +7,117 @@ const {
 
 module.exports = {
     name: 'ping',
-    aliases: ['latency', 'pong'],
-    description: "Displays the bot's various latencies.",
+    aliases: ['latency', 'pong', 'pimg'],
+    description: "Displays the bot's system latency via Keren OS diagnostics.",
     category: 'Information',
     slashOptions: [],
 
     async slashExecute(interaction, client) {
-        const interactionWrapper = {
+        const wrapper = {
             guild: interaction.guild,
             channel: interaction.channel,
             author: interaction.user,
             member: interaction.member,
             createdTimestamp: interaction.createdTimestamp,
-            reply: async (options) => {
-                if (interaction.deferred) {
-                    return await interaction.editReply(options);
-                } else if (interaction.replied) {
-                    return await interaction.followUp(options);
-                } else {
-                    return await interaction.reply(options);
-                }
+            reply: async (opts) => {
+                if (interaction.deferred) return interaction.editReply(opts);
+                if (interaction.replied)  return interaction.followUp(opts);
+                return interaction.reply(opts);
             },
         };
-
-        const args = [];
-        if (interaction.options) {
-            const options = interaction.options.data;
-            for (const option of options) {
-                if (option.value !== undefined) {
-                    args.push(option.value.toString());
-                }
-            }
-        }
-
-        const prefix = client.prefix;
-        return this.execute(interactionWrapper, args, client, prefix);
+        return this.execute(wrapper, [], client, client.prefix);
     },
 
     async execute(message, args, client) {
-
-        const esc = "\u001b";
+        const esc    = '\u001b';
+        const cyan   = `${esc}[1;36m`;
+        const green  = `${esc}[1;32m`;
         const yellow = `${esc}[1;33m`;
-        const gray = `${esc}[1;30m`;
-        const blue = `${esc}[1;34m`;
-        const white = `${esc}[1;37m`;
-        const reset = `${esc}[0m`;
+        const gray   = `${esc}[1;30m`;
+        const blue   = `${esc}[1;34m`;
+        const white  = `${esc}[1;37m`;
+        const red    = `${esc}[1;31m`;
+        const reset  = `${esc}[0m`;
 
-        const startHeader = new TextDisplayBuilder()
-            .setContent(`### ${client.user.username}'s Latency\n-# Requested by ${message.author.username} • <t:${Math.floor(Date.now() / 1000)}:R>`);
+        const ts = Math.floor(Date.now() / 1000);
 
-        const loadingBlock = new TextDisplayBuilder()
-            .setContent(`\`\`\`ansi\n ${yellow}• ${reset} ${yellow}Status ${reset}      ${blue}:: ${reset} ${white}Pinging... ${reset}\n\`\`\``);
+        // ── Loading state ─────────────────────────────────────────────────────
+        const bootBlock = new TextDisplayBuilder().setContent(
+            `\`\`\`ansi\n` +
+            ` ${cyan}KEREN OS ${reset}${gray}// DIAGNOSTIC MODULE${reset}\n` +
+            ` ${gray}──────────────────────────────────────${reset}\n` +
+            ` ${yellow}⟳ ${reset}${white}Initialising neural link...${reset}\n` +
+            `\`\`\``
+        );
 
-        const loadingContainer = new ContainerBuilder()
-            .addTextDisplayComponents(startHeader)
+        const bootContainer = new ContainerBuilder()
+            .setAccentColor(0x5B2D8E)
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`### 🖥️ Keren OS — System Diagnostics\n-# Requested by ${message.author.username} • <t:${ts}:R>`)
+            )
             .addSeparatorComponents(new SeparatorBuilder())
-            .addTextDisplayComponents(loadingBlock);
+            .addTextDisplayComponents(bootBlock);
 
         const msg = await message.reply({
-            components: [loadingContainer],
+            components: [bootContainer],
             flags: MessageFlags.IsComponentsV2
         });
 
-        const api_latency = client.ws.ping;
-        const response_time = msg.createdTimestamp - message.createdTimestamp;
+        // ── Measure latencies ─────────────────────────────────────────────────
+        const ws_ping      = client.ws.ping;
+        const response_ms  = msg.createdTimestamp - message.createdTimestamp;
 
-        const [db_latency, lavalink_latency] = await Promise.all([
-            (async () => {
-                const db_start = performance.now();
-                try {
-                    client.db.db.prepare('SELECT 1').get();
-                    const elapsed = performance.now() - db_start;
-                    return elapsed < 1 ? `${elapsed.toFixed(3)}ms` : `${Math.round(elapsed)}ms`;
-                } catch {
-                    return 'Error';
-                }
-            })(),
+        const db_latency = await (async () => {
+            const t = performance.now();
+            try {
+                client.db.db.prepare('SELECT 1').get();
+                const ms = performance.now() - t;
+                return ms < 1 ? `${ms.toFixed(3)}ms` : `${Math.round(ms)}ms`;
+            } catch { return 'ERR'; }
+        })();
 
-            (async () => {
-                try {
-                    const nodes = client.manager?.shoukaku?.nodes;
-                    if (nodes && nodes.size > 0) {
-                        const node = Array.from(nodes.values())[0];
-                        if (node && node.state === 1) {
-                            const start = Date.now();
-                            try {
-                                await node.rest.resolve('ytsearch:test');
-                                return `${Date.now() - start}ms`;
-                            } catch {
-                                return 'Connected';
-                            }
-                        }
-                    }
-                    return 'Disconnected';
-                } catch {
-                    return 'Error';
-                }
-            })()
-        ]);
+        const ram_mb    = (process.memoryUsage().rss / 1024 / 1024).toFixed(1);
+        const uptime_s  = Math.floor(process.uptime());
+        const h = Math.floor(uptime_s / 3600);
+        const m = Math.floor((uptime_s % 3600) / 60);
+        const s = uptime_s % 60;
+        const uptime_str = h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${s}s` : `${s}s`;
 
-        const finalHeader = new TextDisplayBuilder()
-            .setContent(`### ${client.user.username}'s Latency\n-# Requested by ${message.author.username} • <t:${Math.floor(Date.now() / 1000)}:R>`);
+        const pingColor  = (ms) => ms < 80  ? green : ms < 180 ? yellow : red;
+        const pingStatus = (ms) => ms < 80  ? 'OPTIMAL' : ms < 180 ? 'MODERATE' : 'DEGRADED';
 
-        const latencyBlock = new TextDisplayBuilder()
-            .setContent(`\`\`\`ansi\n` +
-                ` ${yellow}• ${reset} ${yellow}Core Latency ${reset}   ${blue}::\n` +
-                `   ${gray}L ${reset} ${gray}Websocket ${reset}     ${blue}: ${reset} ${white}${api_latency}ms ${reset}\n` +
-                `   ${gray}L ${reset} ${gray}Response ${reset}      ${blue}: ${reset} ${white}${response_time}ms ${reset}\n` +
-                ` ${yellow}• ${reset} ${yellow}Infrastructure ${reset} ${blue}::\n` +
-                `   ${gray}L ${reset} ${gray}Database ${reset}      ${blue}: ${reset} ${white}${db_latency} ${reset}\n` +
-                `   ${gray}L ${reset} ${gray}Lavalink ${reset}      ${blue}: ${reset} ${white}${lavalink_latency} ${reset}\n` +
-                `\`\`\``);
+        const pad = (str, n) => str + ' '.repeat(Math.max(0, n - String(str).length));
 
-        const container = new ContainerBuilder()
-            .addTextDisplayComponents(finalHeader)
+        // ── Final diagnostic block ────────────────────────────────────────────
+        const diagBlock = new TextDisplayBuilder().setContent(
+            `\`\`\`ansi\n` +
+            ` ${cyan}KEREN OS ${reset}${gray}// DIAGNOSTIC MODULE${reset}\n` +
+            ` ${gray}──────────────────────────────────────${reset}\n` +
+            ` ${yellow}• ${reset}${yellow}${pad('CONNECTION', 12)}${reset} ${blue}::\n` +
+            `   ${gray}L ${reset}${gray}${pad('WebSocket', 10)}${reset} ${blue}: ${reset}${pingColor(ws_ping)}${pad(ws_ping + 'ms', 8)}${reset} ${gray}[${pingStatus(ws_ping)}]${reset}\n` +
+            `   ${gray}L ${reset}${gray}${pad('Response', 10)}${reset} ${blue}: ${reset}${pingColor(response_ms)}${pad(response_ms + 'ms', 8)}${reset} ${gray}[${pingStatus(response_ms)}]${reset}\n` +
+            ` ${yellow}• ${reset}${yellow}${pad('KEREN OS CORE', 12)}${reset} ${blue}::\n` +
+            `   ${gray}L ${reset}${gray}${pad('Database', 10)}${reset} ${blue}: ${reset}${green}${pad(db_latency, 8)}${reset} ${gray}[ONLINE]${reset}\n` +
+            `   ${gray}L ${reset}${gray}${pad('Memory', 10)}${reset} ${blue}: ${reset}${white}${pad(ram_mb + ' MB', 8)}${reset} ${gray}[ALLOCATED]${reset}\n` +
+            `   ${gray}L ${reset}${gray}${pad('Uptime', 10)}${reset} ${blue}: ${reset}${white}${uptime_str}${reset}\n` +
+            ` ${gray}──────────────────────────────────────${reset}\n` +
+            ` ${cyan}ARCHITECT ${reset}${gray}// KAZI EREN   AI ${reset}${cyan}// KEREN OS${reset}\n` +
+            `\`\`\``
+        );
+
+        const finalContainer = new ContainerBuilder()
+            .setAccentColor(0x5B2D8E)
+            .addTextDisplayComponents(
+                new TextDisplayBuilder()
+                    .setContent(`### 🖥️ Keren OS — System Diagnostics\n-# Requested by ${message.author.username} • <t:${ts}:R>`)
+            )
             .addSeparatorComponents(new SeparatorBuilder())
-            .addTextDisplayComponents(latencyBlock);
+            .addTextDisplayComponents(diagBlock);
 
-        try {
-            await msg.edit({
-                components: [container],
-                flags: MessageFlags.IsComponentsV2
-            });
-        } catch (error) {
-            if (error.code !== 10008) {
-                console.error('Error editing ping message:', error);
-            }
-        }
+        await msg.edit({
+            components: [finalContainer],
+            flags: MessageFlags.IsComponentsV2
+        }).catch(() => {});
     },
 };

@@ -19,7 +19,7 @@ module.exports = (client) => {
         client.aliases.set(command.aliases, command.name);
       }
 
-      if (command.slashExecute || command.slashOptions) {
+      if (!command.noSlash && (command.slashExecute || command.slashOptions)) {
         const slashData = {
           name: command.name,
           description: command.description || "No description provided",
