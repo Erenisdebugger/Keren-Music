@@ -153,7 +153,7 @@ module.exports = {
 
             if (!foundCommand) {
                 const errorDisplay = new TextDisplayBuilder()
-                    .setContent(`**${emoji.cross} Command \`${commandName}\` not found.**`);
+                    .setContent(`**${client.emoji.cross} Command \`${commandName}\` not found.**`);
 
                 const errorContainer = new ContainerBuilder()
                     .addTextDisplayComponents(errorDisplay);
@@ -348,7 +348,7 @@ module.exports = {
         collector.on('collect', async i => {
             if (i.user.id !== interaction.user.id) {
                 const errorDisplay = new TextDisplayBuilder()
-                    .setContent(`**${emoji.cross} You can't use this menu.**`);
+                    .setContent(`**${client.emoji.cross} You can't use this menu.**`);
 
                 const errorContainer = new ContainerBuilder()
                     .addTextDisplayComponents(errorDisplay);
@@ -458,7 +458,7 @@ module.exports = {
 
             if (!foundCommand) {
                 const errorDisplay = new TextDisplayBuilder()
-                    .setContent(`**${emoji.cross} Command \`${commandName}\` not found.**`);
+                    .setContent(`**${client.emoji.cross} Command \`${commandName}\` not found.**`);
 
                 const errorContainer = new ContainerBuilder()
                     .addTextDisplayComponents(errorDisplay);
@@ -544,10 +544,10 @@ module.exports = {
             const aliases = (displayAliases && displayAliases.length > 0) ? displayAliases.map(a => `\`${a}\``).join(' , ') : 'None';
 
             const content = `> **\`${usageStr}\`**\n\n` +
-                `${emoji.arrowright} ${displayDescription}\n` +
-                `${emoji.arrowright} **Category :** ${commandCategory}\n` +
-                (aliases !== 'None' ? `${emoji.arrowright} **Aliases :** ${aliases}\n` : '') +
-                `${emoji.arrowright} **Example :** \`${exampleStr}\``;
+                `${client.emoji.arrowright} ${displayDescription}\n` +
+                `${client.emoji.arrowright} **Category :** ${commandCategory}\n` +
+                (aliases !== 'None' ? `${client.emoji.arrowright} **Aliases :** ${aliases}\n` : '') +
+                `${client.emoji.arrowright} **Example :** \`${exampleStr}\``;
 
             container.addTextDisplayComponents(new TextDisplayBuilder().setContent(content));
             container.addSeparatorComponents(new SeparatorBuilder());
@@ -596,7 +596,7 @@ module.exports = {
 
         const botName = message.client.user.username;
         const headerDisplay = new TextDisplayBuilder()
-            .setContent(`### ${emoji.check} Help Menu\n-# Requested by ${message.author.displayName} • <t:${Math.floor(Date.now() / 1000)}:t>`);
+            .setContent(`### ${client.emoji.check} Help Menu\n-# Requested by ${message.author.displayName} • <t:${Math.floor(Date.now() / 1000)}:t>`);
 
         const separator = new SeparatorBuilder();
 
@@ -660,7 +660,7 @@ module.exports = {
         collector.on('collect', async interaction => {
             if (interaction.user.id !== message.author.id) {
                 const errorDisplay = new TextDisplayBuilder()
-                    .setContent(`**${emoji.cross} You can't use this menu.**`);
+                    .setContent(`**${client.emoji.cross} You can't use this menu.**`);
 
                 const errorContainer = new ContainerBuilder()
                     .addTextDisplayComponents(errorDisplay);
@@ -686,7 +686,7 @@ module.exports = {
             const commandsList = categoryData[selectedCategory];
 
             const categoryHeader = new TextDisplayBuilder()
-                .setContent(`### ${emoji.check} ${selectedCategory} Commands [${commandsList.length}]\n-# Requested by ${message.author.displayName} • <t:${Math.floor(Date.now() / 1000)}:t>`);
+                .setContent(`### ${client.emoji.check} ${selectedCategory} Commands [${commandsList.length}]\n-# Requested by ${message.author.displayName} • <t:${Math.floor(Date.now() / 1000)}:t>`);
 
             const catSeparator = new SeparatorBuilder();
 

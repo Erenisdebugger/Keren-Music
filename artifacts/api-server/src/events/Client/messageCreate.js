@@ -39,18 +39,35 @@ module.exports = {
         return;
       }
 
-      const greetDisplay = new TextDisplayBuilder()
-        .setContent(
-          `**${client.emoji.check} Hey ${message.author}!**\n` +
-          `**${client.emoji.info} My prefix for this server is  **\`${prefix}\`\n\n` +
-          `**${client.emoji.info} Type \`${prefix}help\` for a list of commands.**`
+      const totalUsers = client.guilds.cache.reduce((acc, g) => acc + (g.memberCount || 0), 0);
+      const totalGuilds = client.guilds.cache.size;
+
+      const mentionContainer = new ContainerBuilder()
+        .setAccentColor(0x5B2D8E)
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            `### ${client.emoji.wave || '\u{1F30A}'} Keren Wave\n` +
+            `-# Your music & utility companion`
+          )
+        )
+        .addSeparatorComponents(new SeparatorBuilder())
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            `${client.emoji.check} **Hey ${message.author}! Ami Keren Wave.**\n` +
+            `${client.emoji.info} **Server Prefix:** \`${prefix}\`\n` +
+            `${client.emoji.info} **Help:** \`${prefix}help\`\n\n` +
+            `${client.emoji.dot || '\u2022'} **Servers:** \`${totalGuilds}\` **|** **Users:** \`${totalUsers}\``
+          )
+        )
+        .addSeparatorComponents(new SeparatorBuilder())
+        .addTextDisplayComponents(
+          new TextDisplayBuilder().setContent(
+            `-# Support: https://discord.gg/HXKmJgq9T`
+          )
         );
 
-      const container = new ContainerBuilder()
-        .addTextDisplayComponents(greetDisplay);
-
       await message.channel.send({
-        components: [container],
+        components: [mentionContainer],
         flags: MessageFlags.IsComponentsV2
       }).catch(() => null);
       return;

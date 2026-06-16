@@ -22,6 +22,7 @@ module.exports = {
     usage: "",
     userPerms: [],
     owner: true,
+    noSlash: true,
 
     async slashExecute(interaction, client) {
         const interactionWrapper = {
@@ -76,13 +77,15 @@ module.exports = {
             );
 
         const container = new ContainerBuilder()
+            .setAccentColor(0x5B2D8E)
             .addTextDisplayComponents(header)
             .addSeparatorComponents(separator1)
-            .addTextDisplayComponents(info);
+            .addTextDisplayComponents(info)
+            .addSeparatorComponents(new SeparatorBuilder())
+            .addActionRowComponents(row);
 
         const msg = await message.reply({
-            content: '',
-            components: [container, row],
+            components: [container],
             flags: MessageFlags.IsComponentsV2
         });
 
