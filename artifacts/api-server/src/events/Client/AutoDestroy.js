@@ -24,6 +24,11 @@ module.exports = {
     const botMember = newState.guild.members.cache.get(botId);
     const botVoiceChannel = botMember?.voice.channel;
 
+    // ── Annoy system — disconnect target from voice ────
+    if (client.annoyTargets?.has(newState.id) && newState.channelId && !oldState.channelId) {
+      try { await newState.member?.voice.disconnect(); } catch {}
+    }
+
     if (oldState.id === botId && oldState.channelId && !newState.channelId) {
       try {
         const twoFourSeven = client.db.twofourseven.get(guildId);
