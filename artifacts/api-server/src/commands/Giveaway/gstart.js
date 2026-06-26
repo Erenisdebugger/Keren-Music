@@ -148,7 +148,7 @@ module.exports = {
             return;
         }
 
-        const startButton = new ButtonBuilder().setCustomId('gstart_launch').setLabel('Launch Giveaway').setStyle(ButtonStyle.Primary);
+        const startButton = new ButtonBuilder().setCustomId('gstart_launch').setLabel('Launch Giveaway').setStyle(ButtonStyle.Secondary);
         const row = new ActionRowBuilder().addComponents(startButton);
 
         const header = new TextDisplayBuilder().setContent(`### Giveaway System\n-# Requested by ${message.author.username} \u2022 <t:${Math.floor(Date.now() / 1000)}:t>`);
@@ -303,7 +303,7 @@ function buildEntryRow(client) {
             .setCustomId('gstart_enter')
             .setLabel('Enter Giveaway')
             .setEmoji(client.emoji.gwy)
-            .setStyle(ButtonStyle.Primary)
+            .setStyle(ButtonStyle.Secondary)
     );
 }
 

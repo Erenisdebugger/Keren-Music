@@ -51,7 +51,7 @@ module.exports = {
         const customizeButton = new ButtonBuilder()
             .setCustomId('open_branding_form')
             .setLabel('Customize Bot Profile')
-            .setStyle(ButtonStyle.Primary);
+            .setStyle(ButtonStyle.Secondary);
 
         const resetButton = new ButtonBuilder()
             .setCustomId('reset_branding')
@@ -195,7 +195,7 @@ module.exports = {
                     const confirmButton = new ButtonBuilder()
                         .setCustomId('confirm_branding')
                         .setLabel('Confirm')
-                        .setStyle(ButtonStyle.Success);
+                        .setStyle(ButtonStyle.Secondary);
 
                     const cancelButton = new ButtonBuilder()
                         .setCustomId('cancel_branding')

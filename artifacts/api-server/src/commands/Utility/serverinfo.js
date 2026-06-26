@@ -192,7 +192,7 @@ module.exports = {
                     if (guild.iconURL()) row.addComponents(new ButtonBuilder().setCustomId('view_icon').setLabel('Server Icon').setStyle(ButtonStyle.Secondary));
                     if (guild.bannerURL()) row.addComponents(new ButtonBuilder().setCustomId('view_banner').setLabel('Server Banner').setStyle(ButtonStyle.Secondary));
                 } else {
-                    row.addComponents(new ButtonBuilder().setCustomId('back').setLabel('Back').setStyle(ButtonStyle.Primary));
+                    row.addComponents(new ButtonBuilder().setCustomId('back').setLabel('Back').setStyle(ButtonStyle.Secondary));
                 }
                 return row.components.length > 0 ? row : null;
             };

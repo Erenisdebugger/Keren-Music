@@ -144,7 +144,7 @@ module.exports = {
                 ));
 
                 const confirmButtons = new ActionRowBuilder().addComponents(
-                    new ButtonBuilder().setCustomId('confirm_yes').setLabel('Yes').setStyle(ButtonStyle.Success),
+                    new ButtonBuilder().setCustomId('confirm_yes').setLabel('Yes').setStyle(ButtonStyle.Secondary),
                     new ButtonBuilder().setCustomId('confirm_no').setLabel('No').setStyle(ButtonStyle.Danger)
                 );
 
@@ -281,7 +281,7 @@ module.exports = {
 
                     const buttons = new ActionRowBuilder().addComponents(
                         new ButtonBuilder().setCustomId('edit_form').setLabel('Edit Role Form').setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder().setCustomId('confirm_create').setLabel('Finish & Create').setStyle(ButtonStyle.Primary),
+                        new ButtonBuilder().setCustomId('confirm_create').setLabel('Finish & Create').setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder().setCustomId('cancel_create').setLabel('Cancel').setStyle(ButtonStyle.Danger)
                     );
 
@@ -484,7 +484,7 @@ module.exports = {
 
                     const buttons = new ActionRowBuilder().addComponents(
                         new ButtonBuilder().setCustomId('edit_form').setLabel('Edit Details').setStyle(ButtonStyle.Secondary),
-                        new ButtonBuilder().setCustomId('confirm_edit').setLabel('Save Changes').setStyle(ButtonStyle.Success),
+                        new ButtonBuilder().setCustomId('confirm_edit').setLabel('Save Changes').setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder().setCustomId('cancel_edit').setLabel('Cancel').setStyle(ButtonStyle.Danger)
                     );
 

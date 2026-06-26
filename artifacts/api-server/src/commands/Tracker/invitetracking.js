@@ -131,7 +131,7 @@ module.exports = {
             const enableButton = new ButtonBuilder()
                 .setCustomId('invitetrack_enable')
                 .setLabel('Enable')
-                .setStyle(ButtonStyle.Success);
+                .setStyle(ButtonStyle.Secondary);
 
             const disableButton = new ButtonBuilder()
                 .setCustomId('invitetrack_disable')

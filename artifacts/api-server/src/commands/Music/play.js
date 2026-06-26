@@ -383,7 +383,7 @@ module.exports = {
         const playNextButton = new ButtonBuilder()
           .setCustomId(`playnext_${track.identifier}_${position}`)
           .setLabel('Play Next')
-          .setStyle(ButtonStyle.Success)
+          .setStyle(ButtonStyle.Secondary)
           .setDisabled(position === 1);
 
         const buttonRow = new ActionRowBuilder()
@@ -987,7 +987,7 @@ module.exports = {
           const playNextButton = new ButtonBuilder()
             .setCustomId(`playnext_${track.track.identifier}_${track.position}`)
             .setLabel('Play Next')
-            .setStyle(ButtonStyle.Success)
+            .setStyle(ButtonStyle.Secondary)
             .setDisabled(track.position === 1);
 
           const buttonRow = new ActionRowBuilder()

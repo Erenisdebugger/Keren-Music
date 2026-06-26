@@ -99,7 +99,7 @@ module.exports = {
                 new ButtonBuilder()
                     .setCustomId('loop_enable_prompt')
                     .setLabel('Enable')
-                    .setStyle(ButtonStyle.Success)
+                    .setStyle(ButtonStyle.Secondary)
                     .setDisabled(currentLoop !== 'none'),
                 new ButtonBuilder()
                     .setCustomId('loop_off')

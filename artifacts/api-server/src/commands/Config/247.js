@@ -183,7 +183,7 @@ module.exports = {
       const enableButton = new ButtonBuilder()
         .setCustomId('247_enable')
         .setLabel('Enable')
-        .setStyle(ButtonStyle.Success);
+        .setStyle(ButtonStyle.Secondary);
 
       const disableButton = new ButtonBuilder()
         .setCustomId('247_disable')

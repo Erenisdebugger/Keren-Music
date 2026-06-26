@@ -230,7 +230,7 @@ module.exports = {
             );
 
             const controlRow = new ActionRowBuilder().addComponents(
-                new ButtonBuilder().setCustomId("am_punish_done").setLabel("Done").setStyle(ButtonStyle.Success),
+                new ButtonBuilder().setCustomId("am_punish_done").setLabel("Done").setStyle(ButtonStyle.Secondary),
                 new ButtonBuilder().setCustomId("am_punish_close").setLabel("Close").setStyle(ButtonStyle.Danger)
             );
 
@@ -453,8 +453,8 @@ module.exports = {
         const buttonRow = new ActionRowBuilder().addComponents(
             allEnabled ?
                 new ButtonBuilder().setCustomId("am_disable_all_btn").setLabel("Disable All").setStyle(ButtonStyle.Danger) :
-                new ButtonBuilder().setCustomId("am_enable_all").setLabel("Enable All").setStyle(ButtonStyle.Success),
-            new ButtonBuilder().setCustomId("am_enable_done").setLabel("Done").setStyle(ButtonStyle.Primary),
+                new ButtonBuilder().setCustomId("am_enable_all").setLabel("Enable All").setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder().setCustomId("am_enable_done").setLabel("Done").setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId("am_enable_cancel").setLabel("Cancel").setStyle(ButtonStyle.Secondary)
         );
 
@@ -492,8 +492,8 @@ module.exports = {
                 s = client.automod.getSettings(guildId);
 
                 const newButtonRow = new ActionRowBuilder().addComponents(
-                    new ButtonBuilder().setCustomId("am_enable_all").setLabel("Enable All").setStyle(ButtonStyle.Success),
-                    new ButtonBuilder().setCustomId("am_enable_done").setLabel("Done").setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder().setCustomId("am_enable_all").setLabel("Enable All").setStyle(ButtonStyle.Secondary),
+                    new ButtonBuilder().setCustomId("am_enable_done").setLabel("Done").setStyle(ButtonStyle.Secondary),
                     new ButtonBuilder().setCustomId("am_enable_cancel").setLabel("Cancel").setStyle(ButtonStyle.Secondary)
                 );
 
@@ -510,7 +510,7 @@ module.exports = {
 
                 const newButtonRow = new ActionRowBuilder().addComponents(
                     new ButtonBuilder().setCustomId("am_disable_all_btn").setLabel("Disable All").setStyle(ButtonStyle.Danger),
-                    new ButtonBuilder().setCustomId("am_enable_done").setLabel("Done").setStyle(ButtonStyle.Primary),
+                    new ButtonBuilder().setCustomId("am_enable_done").setLabel("Done").setStyle(ButtonStyle.Secondary),
                     new ButtonBuilder().setCustomId("am_enable_cancel").setLabel("Cancel").setStyle(ButtonStyle.Secondary)
                 );
 
@@ -849,7 +849,7 @@ module.exports = {
         };
 
         const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder().setCustomId("am_heat_edit").setLabel("Edit Heat Values").setStyle(ButtonStyle.Primary),
+            new ButtonBuilder().setCustomId("am_heat_edit").setLabel("Edit Heat Values").setStyle(ButtonStyle.Secondary),
             new ButtonBuilder().setCustomId("am_heat_close").setLabel("Close").setStyle(ButtonStyle.Danger)
         );
 
