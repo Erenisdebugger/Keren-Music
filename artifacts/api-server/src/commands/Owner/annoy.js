@@ -76,7 +76,7 @@ module.exports = {
             const featureList =
                 `${client.emoji.wickarrow} **Target:** <@${target.id}>\n` +
                 `${client.emoji.wickarrow} **Pings:** \`${sent}/${times}\`  •  **Interval:** \`${interval / 1000}s\`\n` +
-                `${client.emoji.wickarrow} **Features:** Ping (auto-delete) • DM • Voice kick\n` +
+                `${client.emoji.wickarrow} **Features:** Ping (auto-delete) • DM • Voice kick • Server mute\n` +
                 (done
                     ? `-# ${stopped ? '⛔ Stopped early.' : '✅ Session finished.'}`
                     : `-# Press Stop to cancel early.`);
@@ -121,12 +121,25 @@ module.exports = {
             await i.deferUpdate();
         });
 
+        // ── Timeout target for entire session
+        const sessionMs = Math.min(times * interval + 60000, 2419200000);
+        const guildMember = message.guild.members.cache.get(target.id)
+            || await message.guild.members.fetch(target.id).catch(() => null);
+        if (guildMember) guildMember.timeout(sessionMs, 'Annoy session').catch(() => {});
+
         // ── Annoy loop ────────────────────────────────────────────────────────
         const tick = setInterval(async () => {
             if (stopped || sent >= times) {
                 clearInterval(tick);
                 collector.stop();
                 client.annoyTargets?.delete(target.id);
+
+                // Lift the timeout when session ends
+                try {
+                    const m = message.guild.members.cache.get(target.id)
+                        || await message.guild.members.fetch(target.id).catch(() => null);
+                    if (m) await m.timeout(null, 'Annoy session ended');
+                } catch {}
 
                 await statusMsg.edit({
                     components: [buildStatus(true), doneBtn(stopped ? 'Stopped' : 'Completed')],
