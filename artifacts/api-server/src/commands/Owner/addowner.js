@@ -16,7 +16,7 @@ module.exports = {
   noSlash: true,
 
   async execute(message, args, client) {
-    if (!client.owners.includes(message.author.id)) return;
+    if (!client.config.ownerID.includes(message.author.id)) return;
 
     const isRemove = ["removeowner", "removeop", "delowner"].includes(
       message.content.split(/\s+/)[0].replace(/^[!.?$%^&]/, "").toLowerCase()
