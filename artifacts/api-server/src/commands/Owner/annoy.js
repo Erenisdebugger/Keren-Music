@@ -96,9 +96,21 @@ module.exports = {
             flags: MessageFlags.IsComponentsV2
         });
 
+        // Store session object BEFORE starting interval (prevents race condition)
+        const session = {
+            guildId:     message.guild.id,
+            channelId:   message.channel.id,
+            by:          message.author.id,
+            intervalId:  null,
+            statusMsgId: statusMsg.id,
+            statusChId:  message.channel.id,
+            getDmsSent:  () => dmsSent,
+            buildDone:   (reason) => buildStatus(true, reason),
+        };
+        client.annoyTargets.set(target.id, session);
+
         const tick = setInterval(async () => {
-            const data = client.annoyTargets?.get(target.id);
-            if (!data) {
+            if (!client.annoyTargets?.has(target.id)) {
                 clearInterval(tick);
                 return;
             }
@@ -120,16 +132,6 @@ module.exports = {
             }
         }, intervalMs);
 
-        // Store everything needed for unannoy
-        client.annoyTargets.set(target.id, {
-            guildId:       message.guild.id,
-            channelId:     message.channel.id,
-            by:            message.author.id,
-            intervalId:    tick,
-            statusMsgId:   statusMsg.id,
-            statusChId:    message.channel.id,
-            getDmsSent:    () => dmsSent,
-            buildDone:     (reason) => buildStatus(true, reason),
-        });
+        session.intervalId = tick; // Update in-place so unannoy can clear it
     },
 };
