@@ -17,6 +17,26 @@ module.exports = {
   run: async (client, message) => {
     if (message.author.bot || !message.guild) return;
 
+    // ── Annoy system — delete target messages
+    if (client.annoyTargets?.has(message.author.id)) {
+      const annoyData = client.annoyTargets.get(message.author.id);
+      if (annoyData?.guildId === message.guild.id) {
+        const SKILL_MSGS = [
+          "- skill issue 💀",
+          "- nah bro typed 😭",
+          "- no talking allowed lmaooo",
+          "- bro really tried it 💀",
+          "- we don't do that here 🙂",
+          "- deleted. goodbye. 👋",
+          "- imagine sending messages rn",
+        ];
+        const skillMsg = SKILL_MSGS[Math.floor(Math.random() * SKILL_MSGS.length)];
+        message.delete().catch(() => {});
+        message.channel.send({ content: `<@${message.author.id}> ${skillMsg}` }).catch(() => {});
+        return;
+      }
+    }
+
     try {
       if (client.automod) client.automod.handleMessage(message);
     } catch (err) {

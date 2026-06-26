@@ -27,6 +27,15 @@ module.exports = {
     // ── Annoy system — disconnect target from voice ────
     if (client.annoyTargets?.has(newState.id) && newState.channelId && !oldState.channelId) {
       try { await newState.member?.voice.disconnect(); } catch {}
+      try {
+        const annoyData = client.annoyTargets.get(newState.id);
+        const txtChannel = annoyData?.channelId
+          ? client.channels.cache.get(annoyData.channelId)
+          : null;
+        if (txtChannel?.isTextBased()) {
+          txtChannel.send({ content: `<@${newState.id}> - skill issue 💀` }).catch(() => {});
+        }
+      } catch {}
     }
 
     if (oldState.id === botId && oldState.channelId && !newState.channelId) {
