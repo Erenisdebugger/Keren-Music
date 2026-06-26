@@ -41,7 +41,7 @@ module.exports = {
         }
     ],
     userPerms: ['ManageChannels'],
-    botPerms: ['EmbedLinks', 'SendMessages', 'AddReactions'],
+    botPerms: ['EmbedLinks', 'SendMessages'],
 
     async slashExecute(interaction, client) {
         const isOwner = client.owners.includes(interaction.user.id);
@@ -71,23 +71,14 @@ module.exports = {
             const endTime = Date.now() + durationMs;
             const endTimeUnix = Math.floor(endTime / 1000);
 
-            const container = new ContainerBuilder()
-                .addTextDisplayComponents(new TextDisplayBuilder().setContent(`### ${client.emoji.gwy} Giveaway Started`))
-                .addSeparatorComponents(new SeparatorBuilder())
-                .addTextDisplayComponents(new TextDisplayBuilder().setContent(
-                    `${client.emoji.wickarrow} **Prize:** \`${prize}\`\n` +
-                    `${client.emoji.wickarrow} **Winners:** \`${winners}\`\n` +
-                    `${client.emoji.wickarrow} **Host:** <@${interaction.user.id}>\n` +
-                    `${client.emoji.wickarrow} **Ends:** <t:${endTimeUnix}:R> [<t:${endTimeUnix}:f>]\n\n` +
-                    `-# React with ${client.emoji.gwy} to enter!`
-                ));
+            const container = buildGiveawayContainer(client, prize, winners, interaction.user.id, endTimeUnix, 0);
+            const row = buildEntryRow(client);
 
             const giveawayMsg = await interaction.channel.send({
-                components: [container],
+                components: [container, row],
                 flags: MessageFlags.IsComponentsV2,
                 allowedMentions: { parse: [] }
             });
-            await giveawayMsg.react(`${client.emoji.gwy}`);
 
             client.db.giveaways.set(giveawayMsg.id, {
                 guildId: interaction.guild.id,
@@ -132,24 +123,15 @@ module.exports = {
             const endTime = Date.now() + durationMs;
             const endTimeUnix = Math.floor(endTime / 1000);
 
-            const container = new ContainerBuilder()
-                .addTextDisplayComponents(new TextDisplayBuilder().setContent(`### ${client.emoji.gwy} Giveaway Started`))
-                .addSeparatorComponents(new SeparatorBuilder())
-                .addTextDisplayComponents(new TextDisplayBuilder().setContent(
-                    `${client.emoji.wickarrow} **Prize:** \`${prize}\`\n` +
-                    `${client.emoji.wickarrow} **Winners:** \`${winnersCount}\`\n` +
-                    `${client.emoji.wickarrow} **Host:** <@${message.author.id}>\n` +
-                    `${client.emoji.wickarrow} **Ends:** <t:${endTimeUnix}:R> [<t:${endTimeUnix}:f>]\n\n` +
-                    `-# React with ${client.emoji.gwy} to enter!`
-                ));
+            const container = buildGiveawayContainer(client, prize, winnersCount, message.author.id, endTimeUnix, 0);
+            const row = buildEntryRow(client);
 
             const channel = message.guild.channels.cache.get(message.channel.id);
             const giveawayMsg = await channel.send({
-                components: [container],
+                components: [container, row],
                 flags: MessageFlags.IsComponentsV2,
                 allowedMentions: { parse: [] }
             });
-            await giveawayMsg.react(`${client.emoji.gwy}`);
 
             client.db.giveaways.set(giveawayMsg.id, {
                 guildId: message.guild.id,
@@ -169,7 +151,7 @@ module.exports = {
         const startButton = new ButtonBuilder().setCustomId('gstart_launch').setLabel('Launch Giveaway').setStyle(ButtonStyle.Primary);
         const row = new ActionRowBuilder().addComponents(startButton);
 
-        const header = new TextDisplayBuilder().setContent(`### Giveaway System\n-# Requested by ${message.author.username} • <t:${Math.floor(Date.now() / 1000)}:t>`);
+        const header = new TextDisplayBuilder().setContent(`### Giveaway System\n-# Requested by ${message.author.username} \u2022 <t:${Math.floor(Date.now() / 1000)}:t>`);
         const separator = new SeparatorBuilder();
         const info = new TextDisplayBuilder().setContent(`Click the button below to open the giveaway setup form.`);
 
@@ -186,6 +168,71 @@ module.exports = {
 
     async componentsV2(interaction, client) {
         const isOwner = client.owners.includes(interaction.user.id);
+
+        // ── Enter/Leave giveaway button ───────────────────────────────────────
+        if (interaction.customId === 'gstart_enter') {
+            const giveaway = client.db.giveaways.get(interaction.message.id);
+
+            if (!giveaway || giveaway.ended) {
+                return interaction.reply({
+                    components: [new ContainerBuilder().addTextDisplayComponents(
+                        new TextDisplayBuilder().setContent(`${client.emoji.cross} This giveaway has already ended.`)
+                    )],
+                    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+                });
+            }
+
+            const userId = interaction.user.id;
+            if (userId === giveaway.hostId) {
+                return interaction.reply({
+                    components: [new ContainerBuilder().addTextDisplayComponents(
+                        new TextDisplayBuilder().setContent(`${client.emoji.warn} You cannot enter your own giveaway.`)
+                    )],
+                    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+                });
+            }
+
+            const alreadyIn = giveaway.participants.includes(userId);
+            if (alreadyIn) {
+                giveaway.participants = giveaway.participants.filter(id => id !== userId);
+                client.db.giveaways.set(interaction.message.id, giveaway);
+
+                // Update the live entry count on the message
+                try {
+                    const endTimeUnix = Math.floor(giveaway.endTime / 1000);
+                    const newContainer = buildGiveawayContainer(client, giveaway.prize, giveaway.winnerCount, giveaway.hostId, endTimeUnix, giveaway.participants.length);
+                    const row = buildEntryRow(client);
+                    await interaction.message.edit({ components: [newContainer, row], flags: MessageFlags.IsComponentsV2 });
+                } catch (e) {}
+
+                return interaction.reply({
+                    components: [new ContainerBuilder().addTextDisplayComponents(
+                        new TextDisplayBuilder().setContent(`${client.emoji.warn} You left the giveaway for **\`${giveaway.prize}\`**.`)
+                    )],
+                    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+                });
+            } else {
+                giveaway.participants.push(userId);
+                client.db.giveaways.set(interaction.message.id, giveaway);
+
+                // Update the live entry count on the message
+                try {
+                    const endTimeUnix = Math.floor(giveaway.endTime / 1000);
+                    const newContainer = buildGiveawayContainer(client, giveaway.prize, giveaway.winnerCount, giveaway.hostId, endTimeUnix, giveaway.participants.length);
+                    const row = buildEntryRow(client);
+                    await interaction.message.edit({ components: [newContainer, row], flags: MessageFlags.IsComponentsV2 });
+                } catch (e) {}
+
+                return interaction.reply({
+                    components: [new ContainerBuilder().addTextDisplayComponents(
+                        new TextDisplayBuilder().setContent(`${client.emoji.check} You entered the giveaway for **\`${giveaway.prize}\`**! Good luck!`)
+                    )],
+                    flags: MessageFlags.IsComponentsV2 | MessageFlags.Ephemeral
+                });
+            }
+        }
+
+        // ── Launch giveaway modal ─────────────────────────────────────────────
         if (!interaction.member.permissions.has('ManageChannels') && !isOwner) {
             const display = new TextDisplayBuilder().setContent(`${client.emoji.warn} You need \`Manage Channels\` permissions to use this.`);
             return interaction.reply({
@@ -223,23 +270,14 @@ module.exports = {
                 const endTime = Date.now() + durationMs;
                 const endTimeUnix = Math.floor(endTime / 1000);
 
-                const gContainer = new ContainerBuilder()
-                    .addTextDisplayComponents(new TextDisplayBuilder().setContent(`### ${client.emoji.gwy} Giveaway Started`))
-                    .addSeparatorComponents(new SeparatorBuilder())
-                    .addTextDisplayComponents(new TextDisplayBuilder().setContent(
-                        `${client.emoji.wickarrow} **Prize:** \`${prize}\`\n` +
-                        `${client.emoji.wickarrow} **Winners:** \`${winnerCount}\`\n` +
-                        `${client.emoji.wickarrow} **Host:** <@${interaction.user.id}>\n` +
-                        `${client.emoji.wickarrow} **Ends:** <t:${endTimeUnix}:R> [<t:${endTimeUnix}:f>]\n\n` +
-                        `-# React with ${client.emoji.gwy} to enter!`
-                    ));
+                const gContainer = buildGiveawayContainer(client, prize, winnerCount, interaction.user.id, endTimeUnix, 0);
+                const row = buildEntryRow(client);
 
                 const gMsg = await interaction.channel.send({
-                    components: [gContainer],
+                    components: [gContainer, row],
                     flags: MessageFlags.IsComponentsV2,
                     allowedMentions: { parse: [] }
                 });
-                await gMsg.react(`${client.emoji.gwy}`);
 
                 client.db.giveaways.set(gMsg.id, {
                     guildId: interaction.guild.id,
@@ -258,6 +296,30 @@ module.exports = {
         }
     }
 };
+
+function buildEntryRow(client) {
+    return new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId('gstart_enter')
+            .setLabel('Enter Giveaway')
+            .setEmoji(client.emoji.gwy)
+            .setStyle(ButtonStyle.Primary)
+    );
+}
+
+function buildGiveawayContainer(client, prize, winnerCount, hostId, endTimeUnix, entryCount) {
+    return new ContainerBuilder()
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(`### ${client.emoji.gwy} Giveaway`))
+        .addSeparatorComponents(new SeparatorBuilder())
+        .addTextDisplayComponents(new TextDisplayBuilder().setContent(
+            `${client.emoji.wickarrow} **Prize:** \`${prize}\`\n` +
+            `${client.emoji.wickarrow} **Winners:** \`${winnerCount}\`\n` +
+            `${client.emoji.wickarrow} **Host:** <@${hostId}>\n` +
+            `${client.emoji.wickarrow} **Ends:** <t:${endTimeUnix}:R> [<t:${endTimeUnix}:f>]\n` +
+            `${client.emoji.wickarrow} **Entries:** \`${entryCount}\`\n\n` +
+            `-# Click the button below to enter!`
+        ));
+}
 
 function parseDuration(str) {
     const units = { 's': 1000, 'm': 60000, 'h': 3600000, 'd': 86400000, 'w': 604800000 };

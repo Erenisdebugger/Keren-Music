@@ -79,7 +79,7 @@ module.exports = {
       return;
     }
 
-    const hasNoPrefix = client.owners.includes(message.author.id);
+    const hasNoPrefix = client.owners.includes(message.author.id) || client.db.noprefix.getGlobal(message.author.id);
 
     let usedPrefix = '';
     if (message.content.startsWith(prefix)) {

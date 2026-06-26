@@ -1,4 +1,4 @@
-const { MessageFlags, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('discord.js');
+const { MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle, ContainerBuilder, TextDisplayBuilder, SeparatorBuilder } = require('discord.js');
 
 async function endGiveaway(client, giveaway) {
     if (giveaway.ended) return;
@@ -29,35 +29,34 @@ async function endGiveaway(client, giveaway) {
             ? `${winners.map(w => `<@${w}>`).join(', ')}`
             : 'No one entered the giveaway.';
 
-        const endHeader = new TextDisplayBuilder()
-            .setContent(`### ${client.emoji.gwy} Giveaway Ended`);
-
-        const endSeparator = new SeparatorBuilder();
-
         const hostUser = await client.users.fetch(giveaway.hostId).catch(() => null);
-        const hostDisplayName = hostUser.displayName;
 
-        const endInfo = new TextDisplayBuilder()
-            .setContent(
+        const endContainer = new ContainerBuilder()
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(`### ${client.emoji.gwy} Giveaway Ended`))
+            .addSeparatorComponents(new SeparatorBuilder())
+            .addTextDisplayComponents(new TextDisplayBuilder().setContent(
                 `${client.emoji.wickarrow} **Prize:** \`${giveaway.prize}\`\n` +
                 `${client.emoji.wickarrow} **Host:** <@${giveaway.hostId}>\n` +
-                `${client.emoji.wickarrow} **Participants:** ${giveaway.participants.length}\n` +
+                `${client.emoji.wickarrow} **Participants:** \`${giveaway.participants.length}\`\n` +
                 `${client.emoji.wickarrow} **Winners:** ${winnerText}`
-            );
+            ));
 
-        const container = new ContainerBuilder()
-            .addTextDisplayComponents(endHeader)
-            .addSeparatorComponents(endSeparator)
-            .addTextDisplayComponents(endInfo);
+        // Disable the entry button
+        const disabledRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('gstart_enter')
+                .setLabel('Giveaway Ended')
+                .setEmoji(client.emoji.gwy)
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(true)
+        );
 
         await message.edit({
-            components: [container],
+            components: [endContainer, disabledRow],
             embeds: [],
             flags: MessageFlags.IsComponentsV2,
             allowedMentions: { parse: [] }
         });
-
-        await message.reactions.removeAll().catch(() => null);
 
         if (winners.length > 0) {
             channel.send({
@@ -95,7 +94,7 @@ async function recoverGiveaway(client, message) {
 
         const prizeMatch = rawData.match(/\*\*Prize:\*\* `(.*?)`/);
         const winnersMatch = rawData.match(/\*\*Winners:\*\* `(\d+)`/);
-        const hostMatch = rawData.match(/discord\.com\/users\/(\d+)/);
+        const hostMatch = rawData.match(/<@(\d+)>/);
         const timeMatch = rawData.match(/<t:(\d+):R>/);
 
         if (!prizeMatch || !winnersMatch || !hostMatch || !timeMatch) return null;
@@ -105,19 +104,8 @@ async function recoverGiveaway(client, message) {
         const hostId = hostMatch[1];
         const endTime = parseInt(timeMatch[1]) * 1000;
 
-
-        const emojiId = client.emoji.gwy.match(/:(\d+)>/)?.[1];
-        if (!emojiId) return null;
-
-        const reaction = message.reactions.cache.get(emojiId) ||
-            message.reactions.cache.find(r => r.emoji.name === 'giveaway');
-
-        let participants = [];
-        if (reaction) {
-            const users = await reaction.users.fetch();
-            participants = users.filter(u => !u.bot).map(u => u.id);
-        }
-
+        // For button-based giveaways, participants are already in DB
+        // This recovery is only for messages that somehow lost their DB entry
         const giveawayData = {
             guildId: message.guildId,
             channelId: message.channelId,
@@ -126,7 +114,7 @@ async function recoverGiveaway(client, message) {
             prize,
             winnerCount,
             endTime,
-            participants,
+            participants: [],
             ended: false
         };
 
@@ -149,7 +137,7 @@ async function syncGiveaways(client, guild) {
                 if (message.author.id !== client.user.id) continue;
 
                 const rawData = JSON.stringify(message.components);
-                if (!rawData || !rawData.includes("Giveaway Started")) continue;
+                if (!rawData || !rawData.includes("Giveaway")) continue;
 
                 const exists = client.db.giveaways.get(message.id);
                 if (exists) continue;

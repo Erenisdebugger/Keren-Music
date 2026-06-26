@@ -63,7 +63,7 @@ function createButtonRow(client, paused) {
     new ButtonBuilder()
       .setCustomId(paused ? 'resume' : 'pause')
       .setEmoji(paused ? e.play : e.pause)
-      .setStyle(paused ? ButtonStyle.Success : ButtonStyle.Primary),
+      .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId('skip')
       .setEmoji(e.skip)
