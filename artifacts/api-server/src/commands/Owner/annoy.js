@@ -20,7 +20,7 @@ module.exports = {
     noSlash: true,
 
     async execute(message, args, client) {
-        if (!client.config.ownerID.includes(message.author.id)) return;
+        if (!client.owners.includes(message.author.id)) return;
 
         const target = message.mentions.users.first() || (args[0] ? await client.users.fetch(args[0]).catch(() => null) : null);
         if (!target) {
