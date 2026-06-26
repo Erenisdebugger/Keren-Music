@@ -5,38 +5,37 @@ const {
     MessageFlags,
     ContainerBuilder,
     TextDisplayBuilder,
-    ComponentType
 } = require('discord.js');
 
-const ANNOY_TEXTS = [
-    "heyyyy you there 👀",
-    "yo yo yo 😂",
-    "HELLO?? answer me bro 😭",
-    "why are you ignoring me 💀",
-    "okay this is getting weird now",
-    "i will keep going trust me 🙂",
-    "bro check your pings lmao",
-    "you can't escape 🏃",
-    "this is fine. everything is fine. 🔥",
-    "okay last one... jk 😈",
-    "still here btw",
-    "👁️👁️",
+const DM_TEXTS = [
+    "\u{1F440} heyyyy you there",
+    "\ud83d\ude02 yo yo yo",
+    "\ud83d\ude2d HELLO?? answer me bro",
+    "\ud83d\udca7 why are you ignoring me",
+    "\ud83d\ude42 i will keep going trust me",
+    "\ud83c\udfc3 you can't escape",
+    "\ud83d\udd25 this is fine. everything is fine.",
+    "\ud83d\ude08 okay last one... jk",
+    "\ud83d\udc41\ufe0f\ud83d\udc41\ufe0f still watching",
     "boop.",
     "you asked for this fr fr",
-    "skill issue honestly",
+    "tick tock \u23f0",
+    "\ud83d\udce8 new message just dropped",
+    "remember me? \ud83d\ude0a",
+    "i miss you bestie \u2764\ufe0f",
 ];
 
-function randomText() {
-    return ANNOY_TEXTS[Math.floor(Math.random() * ANNOY_TEXTS.length)];
+function randomDM() {
+    return DM_TEXTS[Math.floor(Math.random() * DM_TEXTS.length)];
 }
 
 module.exports = {
     name: 'annoy',
-    aliases: ['ping-user', 'spam', 'bother'],
-    description: 'Annoy a user with pings, DMs, voice kicks, and more.',
+    aliases: ['ping-user', 'bother'],
+    description: 'Annoy a user indefinitely until !unannoy is used.',
     category: 'Owner',
-    usage: 'annoy <@user> [times] [interval_seconds]',
-    example: 'annoy @user 10 1.5',
+    usage: 'annoy <@user> [interval_seconds]',
+    example: 'annoy @user 3',
     owner: true,
     noSlash: true,
 
@@ -49,8 +48,9 @@ module.exports = {
         if (!target) {
             const c = new ContainerBuilder().setAccentColor(0x5B2D8E)
                 .addTextDisplayComponents(new TextDisplayBuilder().setContent(
-                    `${client.emoji.warn} **Usage:** \`${client.prefix}annoy @user [times] [interval_s]\`\n` +
-                    `-# Max 50 pings, min 0.5s interval`
+                    `${client.emoji.warn} **Usage:** \`${client.prefix}annoy @user [interval_s]\`\n` +
+                    `Stop with \`${client.prefix}unannoy @user\`\n` +
+                    `-# Min interval: 2s`
                 ));
             return message.reply({ components: [c], flags: MessageFlags.IsComponentsV2 });
         }
@@ -61,108 +61,75 @@ module.exports = {
             return message.reply({ components: [c], flags: MessageFlags.IsComponentsV2 });
         }
 
-        const times    = Math.min(Math.max(parseInt(args[1])       || 5,   1), 50);
-        const interval = Math.min(Math.max((parseFloat(args[2]) || 1) * 1000, 500), 15000);
-
-        // Track for voice-kick
         if (!client.annoyTargets) client.annoyTargets = new Map();
-        client.annoyTargets.set(target.id, { guildId: message.guild.id, channelId: message.channel.id, by: message.author.id });
 
-        let sent    = 0;
-        let stopped = false;
+        if (client.annoyTargets.has(target.id)) {
+            const c = new ContainerBuilder().setAccentColor(0x5B2D8E)
+                .addTextDisplayComponents(new TextDisplayBuilder().setContent(
+                    `${client.emoji.warn} <@${target.id}> is already being annoyed.\nUse \`${client.prefix}unannoy @user\` to stop.`
+                ));
+            return message.reply({ components: [c], flags: MessageFlags.IsComponentsV2 });
+        }
 
-        // ── status card ───────────────────────────────────────────────────────
-        const buildStatus = (done = false) => {
-            const featureList =
+        const intervalSec = Math.min(Math.max((parseFloat(args[1]) || 3), 2), 30);
+        const intervalMs  = intervalSec * 1000;
+
+        let dmsSent = 0;
+
+        const buildStatus = (done = false, reason = '') => {
+            const body =
                 `${client.emoji.wickarrow} **Target:** <@${target.id}>\n` +
-                `${client.emoji.wickarrow} **Pings:** \`${sent}/${times}\`  •  **Interval:** \`${interval / 1000}s\`\n` +
-                `${client.emoji.wickarrow} **Features:** Ping (auto-delete) • DM • Voice kick • Msg delete\n` +
+                `${client.emoji.wickarrow} **DMs sent:** \`${dmsSent}\`  •  **Interval:** \`${intervalSec}s\`\n` +
+                `${client.emoji.wickarrow} **Active:** DM spam • Voice kick • Msg delete\n` +
                 (done
-                    ? `-# ${stopped ? '⛔ Stopped early.' : '✅ Session finished.'}`
-                    : `-# Press Stop to cancel early.`);
+                    ? `-# ${reason}`
+                    : `-# Use \`${client.prefix}unannoy @${target.username}\` to stop.`);
 
             return new ContainerBuilder().setAccentColor(0x5B2D8E)
                 .addTextDisplayComponents(new TextDisplayBuilder().setContent(
-                    `### ${done ? (stopped ? client.emoji.cross : client.emoji.check) : client.emoji.warn} Annoy ${done ? (stopped ? 'Stopped' : 'Done') : 'Active'}\n` + featureList
+                    `### ${done ? client.emoji.check : client.emoji.warn} Annoy ${done ? 'Ended' : 'Active'}\n` + body
                 ));
         };
 
-        const stopBtn = () => new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId('annoy_stop')
-                .setLabel('Stop')
-                .setEmoji(client.emoji.stop || '⛔')
-                .setStyle(ButtonStyle.Danger)
-        );
-
-        const doneBtn = (label) => new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setCustomId('annoy_stop')
-                .setLabel(label)
-                .setStyle(ButtonStyle.Secondary)
-                .setDisabled(true)
-        );
-
         const statusMsg = await message.reply({
-            components: [buildStatus(), stopBtn()],
+            components: [buildStatus()],
             flags: MessageFlags.IsComponentsV2
         });
 
-        // ── Stop button collector ─────────────────────────────────────────────
-        const collector = statusMsg.createMessageComponentCollector({
-            componentType: ComponentType.Button,
-            time: times * interval + 10000,
-            filter: i => i.customId === 'annoy_stop' && client.owners.includes(i.user.id)
-        });
-
-        collector.on('collect', async i => {
-            stopped = true;
-            collector.stop('manual');
-            await i.deferUpdate();
-        });
-
-        // ── Annoy loop ────────────────────────────────────────────────────────
         const tick = setInterval(async () => {
-            if (stopped || sent >= times) {
+            const data = client.annoyTargets?.get(target.id);
+            if (!data) {
                 clearInterval(tick);
-                collector.stop();
-                client.annoyTargets?.delete(target.id);
-
-                await statusMsg.edit({
-                    components: [buildStatus(true), doneBtn(stopped ? 'Stopped' : 'Completed')],
-                    flags: MessageFlags.IsComponentsV2
-                }).catch(() => {});
                 return;
             }
 
             try {
-                // 1️⃣ Ping in channel (auto-delete after 2s)
-                const pingMsg = await message.channel.send({
-                    content: `<@${target.id}> ${randomText()}`
-                }).catch(() => null);
-                if (pingMsg) setTimeout(() => pingMsg.delete().catch(() => {}), 2000);
+                // DM the user
+                target.send({ content: randomDM() }).catch(() => {});
 
-                // 2️⃣ DM the user (silent fail if DMs closed)
-                target.send({ content: `👀 ${randomText()}` }).catch(() => {});
-
-                // 3️⃣ Voice kick — if target is in any VC in this guild
+                // Voice kick
                 const guild  = client.guilds.cache.get(message.guild.id);
                 const member = guild?.members.cache.get(target.id);
-                if (member?.voice?.channelId) {
-                    member.voice.disconnect().catch(() => {});
-                }
+                if (member?.voice?.channelId) member.voice.disconnect().catch(() => {});
 
-                sent++;
-                await statusMsg.edit({
-                    components: [buildStatus(), stopBtn()],
-                    flags: MessageFlags.IsComponentsV2
-                }).catch(() => {});
-
+                dmsSent++;
+                await statusMsg.edit({ components: [buildStatus()], flags: MessageFlags.IsComponentsV2 }).catch(() => {});
             } catch {
                 clearInterval(tick);
-                collector.stop();
                 client.annoyTargets?.delete(target.id);
             }
-        }, interval);
+        }, intervalMs);
+
+        // Store everything needed for unannoy
+        client.annoyTargets.set(target.id, {
+            guildId:       message.guild.id,
+            channelId:     message.channel.id,
+            by:            message.author.id,
+            intervalId:    tick,
+            statusMsgId:   statusMsg.id,
+            statusChId:    message.channel.id,
+            getDmsSent:    () => dmsSent,
+            buildDone:     (reason) => buildStatus(true, reason),
+        });
     },
 };
