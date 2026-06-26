@@ -150,6 +150,14 @@ const tables = [
         `
     },
     {
+        name: 'dynowners',
+        schema: `
+            userId TEXT PRIMARY KEY,
+            addedBy TEXT,
+            addedAt TEXT
+        `
+    },
+    {
         name: 'invitetracking',
         schema: `
             guildId TEXT PRIMARY KEY,
@@ -831,6 +839,22 @@ managers.automod = {
     }
 };
 
-const Database = { db, ...managers };
+const dynowners = {
+    add: (userId, addedBy) => {
+        db.prepare('INSERT OR IGNORE INTO dynowners (userId, addedBy, addedAt) VALUES (?, ?, ?)')
+          .run(userId, addedBy, new Date().toISOString());
+    },
+    remove: (userId) => {
+        db.prepare('DELETE FROM dynowners WHERE userId = ?').run(userId);
+    },
+    list: () => {
+        return db.prepare('SELECT * FROM dynowners').all();
+    },
+    has: (userId) => {
+        return !!db.prepare('SELECT 1 FROM dynowners WHERE userId = ?').get(userId);
+    }
+};
+
+const Database = { db, ...managers, dynowners };
 
 module.exports = Database;

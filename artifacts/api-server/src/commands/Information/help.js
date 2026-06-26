@@ -336,10 +336,11 @@ module.exports = {
             .addSeparatorComponents(separator2)
             .addActionRowComponents(row);
 
-        const sentMessage = await interaction.reply({
+        await interaction.reply({
             components: [helpContainer],
             flags: MessageFlags.IsComponentsV2
         });
+        const sentMessage = await interaction.fetchReply();
 
         let lastActiveContainer = helpContainer;
 
@@ -418,12 +419,12 @@ module.exports = {
         collector.on('end', () => {
             selectMenu.setDisabled(true);
             selectMenu.setPlaceholder('Help Menu timed out');
-            sentMessage.edit({ components: [lastActiveContainer] }).catch(() => { });
+            interaction.editReply({ components: [lastActiveContainer] }).catch(() => { });
         });
     },
 
-    async execute(message, args) {
-        const client = message.client;
+    async execute(message, args, client) {
+        if (!client) client = message.client;
         const commandName = args[0];
         const commandsPath = path.join(__dirname, '..', '..', 'commands');
 

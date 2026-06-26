@@ -28,7 +28,8 @@ class MusicBot extends Client {
     this.commands = new Collection();
     this.slashCommands = new Collection();
     this.config = require("../config.js");
-    this.owners = this.config.ownerID;
+    this.owners = [...(this.config.ownerID || [])];
+    // Dynamic owners loaded from DB after init (see loadDynamicOwners)
     this.prefix = this.config.prefix;
     this.color = this.config.color;
     this.embedColor = this.config.color;
@@ -45,6 +46,13 @@ class MusicBot extends Client {
     this.cooldowns = new Collection();
     this.db = require("./Database");
     this.logger.log("[DB] Local SQLite Database Initialized", "ready");
+    // Load dynamic owners from DB
+    try {
+      const dynOwners = this.db.dynowners.list();
+      for (const o of dynOwners) {
+        if (!this.owners.includes(o.userId)) this.owners.push(o.userId);
+      }
+    } catch (e) { /* dynowners not yet available on first boot */ }
 
     try {
       this.automod = new AutomodManager(this);

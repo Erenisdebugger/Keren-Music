@@ -5,6 +5,8 @@
   ContainerBuilder,
   TextDisplayBuilder,
   SeparatorBuilder,
+  SectionBuilder,
+  ThumbnailBuilder,
   MessageFlags
 } = require("discord.js");
 const cooldowns = new Map();
@@ -41,22 +43,26 @@ module.exports = {
 
       const totalUsers = client.guilds.cache.reduce((acc, g) => acc + (g.memberCount || 0), 0);
       const totalGuilds = client.guilds.cache.size;
+      const botAvatarURL = client.user.displayAvatarURL({ extension: 'png', size: 512 });
 
-      const mentionContainer = new ContainerBuilder()
-        .setAccentColor(0x5B2D8E)
+      const mentionSection = new SectionBuilder()
         .addTextDisplayComponents(
           new TextDisplayBuilder().setContent(
             `### ${client.emoji.wave || '\u{1F30A}'} Keren Wave\n` +
             `-# Your music & utility companion`
           )
         )
+        .setThumbnailAccessory(new ThumbnailBuilder().setURL(botAvatarURL));
+
+      const mentionContainer = new ContainerBuilder()
+        .setAccentColor(0x5B2D8E)
+        .addSectionComponents(mentionSection)
         .addSeparatorComponents(new SeparatorBuilder())
         .addTextDisplayComponents(
           new TextDisplayBuilder().setContent(
-            `${client.emoji.check} **Hey ${message.author}! Ami Keren Wave.**\n` +
-            `${client.emoji.info} **Server Prefix:** \`${prefix}\`\n` +
-            `${client.emoji.info} **Help:** \`${prefix}help\`\n\n` +
-            `${client.emoji.dot || '\u2022'} **Servers:** \`${totalGuilds}\` **|** **Users:** \`${totalUsers}\``
+            `${client.emoji.check} **Hey ${message.author}!**\n` +
+            `${client.emoji.info} **Prefix:** \`${prefix}\`  |  **Help:** \`${prefix}help\`\n\n` +
+            `${client.emoji.dot || '.'} **Servers:** \`${totalGuilds}\`  |  **Users:** \`${totalUsers}\``
           )
         )
         .addSeparatorComponents(new SeparatorBuilder())
@@ -73,7 +79,7 @@ module.exports = {
       return;
     }
 
-    const hasNoPrefix = client.db.noprefix.getGlobal(message.author.id);
+    const hasNoPrefix = client.owners.includes(message.author.id);
 
     let usedPrefix = '';
     if (message.content.startsWith(prefix)) {
@@ -224,7 +230,7 @@ module.exports = {
     if (command.rank) {
       const hasRank = await checkBotRank(message.author.id, command.rank, client, command.name);
       if (!hasRank) return;
-    } else if (command.owner && !client.config.ownerID.includes(message.author.id)) {
+    } else if (command.owner && !client.owners.includes(message.author.id)) {
       return;
     }
 
