@@ -19,6 +19,7 @@ function buildCategoryInfo(e) {
         'Favourite':   { emoji: e.fav      || '💜',  description: 'Shows favourite commands' },
         'Config':      { emoji: e.config   || '⚙️',  description: 'Shows configuration commands' },
         'Utility':     { emoji: e.util     || '🔧',  description: 'Shows utility commands' },
+        'AI':          { emoji: e.bolt     || '✨',  description: 'Keren AI assistant commands' },
         'Giveaway':    { emoji: e.gwy      || '🎉',  description: 'Shows giveaway commands' },
         'Filters':     { emoji: e.filter   || '🎛️',  description: 'Shows filter commands' },
         'Tracker':     { emoji: e.tracker  || '📨',  description: 'Shows invite tracking commands' },
@@ -28,7 +29,7 @@ function buildCategoryInfo(e) {
     };
 }
 
-const categoryOrder = ['Information', 'Music', 'Favourite', 'Config', 'Moderation', 'Automod', 'Voice', 'Utility', 'Giveaway', 'Filters', 'Tracker'];
+const categoryOrder = ['Information', 'Music', 'Favourite', 'Config', 'Moderation', 'Automod', 'Voice', 'Utility', 'Giveaway', 'Filters', 'Tracker', 'AI'];
 
 module.exports = {
     name: 'help',
