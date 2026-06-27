@@ -10,7 +10,7 @@ name = "API Server"
 paths = ["/api"]
 
 [services.development]
-run = "cd artifacts/api-server && node --no-warnings Shard.js"
+run = "sleep infinity"
 
 [services.production]
 
