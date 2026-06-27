@@ -10,55 +10,23 @@ const {
 const config = require('../../config.js');
 const fs = require('fs');
 const path = require('path');
-const emoji = require("../../emojis");
 const { parseEmoji } = require('../../utils/emojiParser.js');
 
-const categoryInfo = {
-    'Information': {
-        emoji: 'ℹ️',
-        description: 'Shows information commands'
-    },
-    'Music': {
-        emoji: '🎵',
-        description: 'Shows music commands'
-    },
-    'Favourite': {
-        emoji: '❤️',
-        description: 'Shows favourite commands'
-    },
-    'Config': {
-        emoji: '⚙️',
-        description: 'Shows configuration commands'
-    },
-    'Utility': {
-        emoji: '🔧',
-        description: 'Shows utility commands'
-    },
-    'Giveaway': {
-        emoji: '🎉',
-        description: 'Shows giveaway commands'
-    },
-    'Filters': {
-        emoji: '🎛️',
-        description: 'Shows filter commands'
-    },
-    'Tracker': {
-        emoji: '📨',
-        description: 'Shows invite tracking commands'
-    },
-    'Moderation': {
-        emoji: '🛡️',
-        description: 'Shows moderation commands'
-    },
-    'Automod': {
-        emoji: '🤖',
-        description: 'Shows automod commands'
-    },
-    'Voice': {
-        emoji: '🔊',
-        description: 'Shows voice commands'
-    }
-};
+function buildCategoryInfo(e) {
+    return {
+        'Information': { emoji: e.info     || 'ℹ️',  description: 'Shows information commands' },
+        'Music':       { emoji: e.note     || '🎵',  description: 'Shows music commands' },
+        'Favourite':   { emoji: e.fav      || '💜',  description: 'Shows favourite commands' },
+        'Config':      { emoji: e.config   || '⚙️',  description: 'Shows configuration commands' },
+        'Utility':     { emoji: e.util     || '🔧',  description: 'Shows utility commands' },
+        'Giveaway':    { emoji: e.gwy      || '🎉',  description: 'Shows giveaway commands' },
+        'Filters':     { emoji: e.filter   || '🎛️',  description: 'Shows filter commands' },
+        'Tracker':     { emoji: e.tracker  || '📨',  description: 'Shows invite tracking commands' },
+        'Moderation':  { emoji: e.mod      || '🛡️',  description: 'Shows moderation commands' },
+        'Automod':     { emoji: e.automod  || '🤖',  description: 'Shows automod commands' },
+        'Voice':       { emoji: e.voice    || '🎙️',  description: 'Shows voice commands' },
+    };
+}
 
 const categoryOrder = ['Information', 'Music', 'Favourite', 'Config', 'Moderation', 'Automod', 'Voice', 'Utility', 'Giveaway', 'Filters', 'Tracker'];
 
@@ -288,7 +256,7 @@ module.exports = {
 
         const separator = new SeparatorBuilder();
 
-        const descriptionText = `**${botName}** is your ultimate music & utility companion — stream high-fidelity audio from **YouTube**, **Spotify**, **Apple Music** and more. Packed with **Moderation**, **AutoMod**, **Invite Tracking**, **Giveaways** and beyond. Built to elevate your server. 🎶`;
+        const descriptionText = `**${botName}** is your ultimate music & utility companion — stream high-fidelity audio from **YouTube**, **Spotify**, **Apple Music** and more. Packed with **Moderation**, **AutoMod**, **Invite Tracking**, **Giveaways** and beyond. Built to elevate your server. ${client.emoji.note || '🎶'}`;
 
         const descriptionDisplay = new TextDisplayBuilder()
             .setContent(descriptionText);
@@ -306,7 +274,7 @@ module.exports = {
         });
 
         const categoryOptions = sortedCategories.map(cat => {
-            const info = categoryInfo[cat] || { emoji: '📁', description: `${cat.toLowerCase()} commands` };
+            const info = buildCategoryInfo(client.emoji)[cat] || { emoji: '📁', description: `${cat.toLowerCase()} commands` };
             return {
                 label: cat,
                 value: cat,
@@ -601,7 +569,7 @@ module.exports = {
 
         const separator = new SeparatorBuilder();
 
-        const descriptionText = `**${botName}** is your ultimate music & utility companion — stream high-fidelity audio from **YouTube**, **Spotify**, **Apple Music** and more. Packed with **Moderation**, **AutoMod**, **Invite Tracking**, **Giveaways** and beyond. Built to elevate your server. 🎶`;
+        const descriptionText = `**${botName}** is your ultimate music & utility companion — stream high-fidelity audio from **YouTube**, **Spotify**, **Apple Music** and more. Packed with **Moderation**, **AutoMod**, **Invite Tracking**, **Giveaways** and beyond. Built to elevate your server. ${client.emoji.note || '🎶'}`;
 
         const descriptionDisplay = new TextDisplayBuilder()
             .setContent(descriptionText);
@@ -619,7 +587,7 @@ module.exports = {
         });
 
         const categoryOptions = sortedCategories.map(cat => {
-            const info = categoryInfo[cat] || { emoji: '📁', description: `${cat.toLowerCase()} commands` };
+            const info = buildCategoryInfo(client.emoji)[cat] || { emoji: '📁', description: `${cat.toLowerCase()} commands` };
             return {
                 label: cat,
                 value: cat,

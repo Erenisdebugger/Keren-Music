@@ -40,7 +40,24 @@ const EMOJI_DEFS = {
   kw_star:    '2b50',    // ⭐
   kw_user:    '1f464',   // 👤
   kw_music:   '1f3b6',   // 🎶
-  kw_headset: '1f3a7',   // 🎧
+  kw_headset:  '1f3a7',   // 🎧
+  kw_terminal: '1f4bb',   // 💻
+  kw_lock:     '1f512',   // 🔒
+  kw_online:   '1f7e2',   // 🟢
+  kw_idle:     '1f7e1',   // 🟡
+  kw_dnd:      '1f534',   // 🔴
+  kw_offline:  '26ab',    // ⚫
+  kw_config:   '2699',    // ⚙️
+  kw_mod:      '1f6e1',   // 🛡️
+  kw_fav:      '1f49c',   // 💜
+  kw_filter:   '1f39b',   // 🎛️
+  kw_tracker:  '1f4e8',   // 📨
+  kw_automod:  '1f916',   // 🤖
+  kw_voice:    '1f399',   // 🎙️
+  kw_util:     '1f527',   // 🔧
+  kw_trophy:   '1f3c6',   // 🏆
+  kw_bolt:     '26a1',    // ⚡
+  kw_games:    '1f3ae',   // 🎮
 };
 
 // Unicode fallbacks — used when uploads are unavailable
@@ -53,6 +70,12 @@ const UNICODE = {
   kw_crown:   '👑',  kw_party:   '🎉',  kw_clock:   '⏱️',
   kw_load:    '⏳',  kw_queue:   '📋',  kw_star:    '⭐',
   kw_user:    '👤',  kw_music:   '🎶',  kw_headset: '🎧',
+  kw_terminal:'💻',  kw_lock:    '🔒',  kw_online:  '🟢',
+  kw_idle:    '🟡',  kw_dnd:     '🔴',  kw_offline: '⚫',
+  kw_config:  '⚙️',  kw_mod:     '🛡️',  kw_fav:     '💜',
+  kw_filter:  '🎛️',  kw_tracker: '📨',  kw_automod: '🤖',
+  kw_voice:   '🎙️',  kw_util:    '🔧',  kw_trophy:  '🏆',
+  kw_bolt:    '⚡',  kw_games:   '🎮',
 };
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -167,15 +190,21 @@ async function initAppEmojis(client) {
  */
 function applyToClient(client, map) {
   const MAP = {
-    check: 'kw_check',    cross:    'kw_cross',   info:     'kw_info',
-    warn:  'kw_warn',     play:     'kw_play',    pause:    'kw_pause',
-    stop:  'kw_stop',     skip:     'kw_skip',    previous: 'kw_prev',
-    like:  'kw_like',     shuffle:  'kw_shuffle', loop:     'kw_loop',
-    volup: 'kw_vol',      note:     'kw_note',    wave:     'kw_wave',
-    owner: 'kw_crown',    gwy:      'kw_party',   duration: 'kw_clock',
-    load:  'kw_load',     spotify:  'kw_headset', ytmusic:  'kw_music',
-    dance: 'kw_music',    user:     'kw_user',    star:     'kw_star',
-    queue: 'kw_queue',    headset:  'kw_headset',
+    check:    'kw_check',    cross:    'kw_cross',    info:     'kw_info',
+    warn:     'kw_warn',     play:     'kw_play',     pause:    'kw_pause',
+    stop:     'kw_stop',     skip:     'kw_skip',     previous: 'kw_prev',
+    like:     'kw_like',     shuffle:  'kw_shuffle',  loop:     'kw_loop',
+    volup:    'kw_vol',      note:     'kw_note',     wave:     'kw_wave',
+    owner:    'kw_crown',    gwy:      'kw_party',    duration: 'kw_clock',
+    load:     'kw_load',     spotify:  'kw_headset',  ytmusic:  'kw_music',
+    dance:    'kw_music',    user:     'kw_user',     star:     'kw_star',
+    queue:    'kw_queue',    headset:  'kw_headset',
+    terminal: 'kw_terminal', lock:     'kw_lock',     online:   'kw_online',
+    idle:     'kw_idle',     dnd:      'kw_dnd',      offline:  'kw_offline',
+    config:   'kw_config',   mod:      'kw_mod',      admin:    'kw_mod',
+    fav:      'kw_fav',      filter:   'kw_filter',   tracker:  'kw_tracker',
+    automod:  'kw_automod',  voice:    'kw_voice',    util:     'kw_util',
+    trophy:   'kw_trophy',   bolt:     'kw_bolt',     games:    'kw_games',
   };
 
   for (const [clientKey, appKey] of Object.entries(MAP)) {

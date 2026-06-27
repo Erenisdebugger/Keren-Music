@@ -22,5 +22,22 @@
   "kw_star": "<:kw_star:1516201459052445896>",
   "kw_user": "<:kw_user:1516201464127688919>",
   "kw_music": "<:kw_music:1516201469680816218>",
-  "kw_headset": "<:kw_headset:1516201474885947685>"
+  "kw_headset": "<:kw_headset:1516201474885947685>",
+  "kw_terminal": "<:kw_terminal:1520374709768818778>",
+  "kw_lock": "<:kw_lock:1520374714919555207>",
+  "kw_online": "<:kw_online:1520374726785241112>",
+  "kw_idle": "<:kw_idle:1520374732309139506>",
+  "kw_dnd": "<:kw_dnd:1520374737300361347>",
+  "kw_offline": "<:kw_offline:1520374742614409226>",
+  "kw_config": "<:kw_config:1520374747681001595>",
+  "kw_mod": "<:kw_mod:1520374752336674858>",
+  "kw_fav": "<:kw_fav:1520374757915365418>",
+  "kw_filter": "<:kw_filter:1520374763204116500>",
+  "kw_tracker": "<:kw_tracker:1520374768254189610>",
+  "kw_automod": "<:kw_automod:1520374773539143710>",
+  "kw_voice": "<:kw_voice:1520374778509267016>",
+  "kw_util": "<:kw_util:1520374783580045332>",
+  "kw_trophy": "<:kw_trophy:1520374788491706441>",
+  "kw_bolt": "<:kw_bolt:1520374793705357422>",
+  "kw_games": "<:kw_games:1520374798734331966>"
 }

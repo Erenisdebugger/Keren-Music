@@ -27,7 +27,7 @@ module.exports = {
         try { user = await client.users.fetch(id); } catch { user = null; }
         const tag = user ? `**${user.username}** \`(${id})\`` : `Unknown \`(${id})\``;
         const type = client.config.ownerID.includes(id) ? "Core" : "Dynamic";
-        const typeLabel = type === "Core" ? "👑 Core" : "⚡ Dynamic";
+        const typeLabel = type === "Core" ? `${client.emoji.owner || '👑'} Core` : `${client.emoji.bolt || '⚡'} Dynamic`;
         return `**\`${i + 1}.\`** ${tag} — ${typeLabel}`;
       })
     );
@@ -47,7 +47,7 @@ module.exports = {
       .addSeparatorComponents(new SeparatorBuilder())
       .addTextDisplayComponents(
         new TextDisplayBuilder().setContent(
-          `-# 👑 Core = set in config.json  •  ⚡ Dynamic = added via ${client.prefix}addowner`
+          `-# ${client.emoji.owner || '👑'} Core = set in config.json  •  ${client.emoji.bolt || '⚡'} Dynamic = added via ${client.prefix}addowner`
         )
       );
 

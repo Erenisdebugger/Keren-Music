@@ -128,7 +128,7 @@ module.exports = {
                         .setURL('https://discord.gg/HXKmJgq9T'),
                     new ButtonBuilder()
                         .setLabel('Support Server')
-                        .setEmoji(client.emoji.star || '⭐')
+                        .setEmoji(client.emoji.star || '⭐️')
                         .setStyle(ButtonStyle.Link)
                         .setURL('https://discord.gg/HXKmJgq9T')
                 )

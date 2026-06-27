@@ -6,7 +6,6 @@ const {
     SeparatorBuilder,
     ActivityType
 } = require('discord.js');
-const emoji = require('../../emojis');
 
 module.exports = {
     name: 'presence',
@@ -39,7 +38,7 @@ module.exports = {
         }
 
         if (!targetMember) {
-            const display = new TextDisplayBuilder().setContent(`${emoji.warn} User not found in this server.`);
+            const display = new TextDisplayBuilder().setContent(`${client.emoji.warn || '⚠️'} User not found in this server.`);
             return message.reply({ components: [new ContainerBuilder().addTextDisplayComponents(display)], flags: MessageFlags.IsComponentsV2 });
         }
 
@@ -52,10 +51,10 @@ module.exports = {
         };
 
         const statusEmojiMap = {
-            online: '🟢',
-            idle: '🟡',
-            dnd: '🔴',
-            offline: '⚫'
+            online:  client.emoji.online  || '🟢',
+            idle:    client.emoji.idle    || '🟡',
+            dnd:     client.emoji.dnd     || '🔴',
+            offline: client.emoji.offline || '⚫'
         };
 
         const status = presence ? statusMap[presence.status] : statusMap['offline'];
@@ -76,7 +75,7 @@ module.exports = {
             `${customActivity.emoji ? customActivity.emoji.toString() + ' ' : ''}${customActivity.state || ''}` :
             "None";
 
-        let mainContent = `${emoji.hastag} **__User Status__**\n` +
+        let mainContent = `${client.emoji.hastag || '#'} **__User Status__**\n` +
             `> **Target:** [\`${targetMember.user.displayName}\`](https://discord.com/users/${targetMember.user.id})\n` +
             `> **Status:** \` ${sEmoji} ${status} \`\n` +
             `> **Device:** \` ${deviceText} \`\n` +
@@ -85,7 +84,7 @@ module.exports = {
         const filteredActivities = activities.filter(act => act.type !== ActivityType.Custom);
 
         if (filteredActivities.length > 0) {
-            mainContent += `\n\n${emoji.hastag} **__Activities__**`;
+            mainContent += `\n\n${client.emoji.hastag || '#'} **__Activities__**`;
             filteredActivities.forEach(act => {
                 if (act.name === 'Spotify') {
                     mainContent += `\n> Listening to **Spotify** - **${act.details}** (${act.state})`;
@@ -105,7 +104,7 @@ module.exports = {
                 }
             });
         } else if (presence && presence.status !== 'offline') {
-            mainContent += `\n\n ${emoji.hastag} **__Activities__**\n${emoji.blank}${emoji.wickarrow} \`No current activity\``;
+            mainContent += `\n\n ${client.emoji.hastag || '#'} **__Activities__**\n${emoji.blank}${emoji.wickarrow} \`No current activity\``;
         }
 
         const section = new SectionBuilder();

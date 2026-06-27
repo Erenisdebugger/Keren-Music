@@ -54,7 +54,7 @@ module.exports = {
             .setAccentColor(0x5B2D8E)
             .addTextDisplayComponents(
                 new TextDisplayBuilder()
-                    .setContent(`### 🖥️ Keren OS — System Diagnostics\n-# Requested by ${message.author.username} • <t:${ts}:R>`)
+                    .setContent(`### ${client.emoji.terminal || '🖥️'} Keren OS — System Diagnostics\n-# Requested by ${message.author.username} • <t:${ts}:R>`)
             )
             .addSeparatorComponents(new SeparatorBuilder())
             .addTextDisplayComponents(bootBlock);
@@ -110,7 +110,7 @@ module.exports = {
             .setAccentColor(0x5B2D8E)
             .addTextDisplayComponents(
                 new TextDisplayBuilder()
-                    .setContent(`### 🖥️ Keren OS — System Diagnostics\n-# Requested by ${message.author.username} • <t:${ts}:R>`)
+                    .setContent(`### ${client.emoji.terminal || '🖥️'} Keren OS — System Diagnostics\n-# Requested by ${message.author.username} • <t:${ts}:R>`)
             )
             .addSeparatorComponents(new SeparatorBuilder())
             .addTextDisplayComponents(diagBlock);
