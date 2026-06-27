@@ -9,78 +9,85 @@ const {
     MessageFlags
 } = require("discord.js");
 const { convertTime } = require("../../utils/convert.js");
-const lyricsFinder = require("@flytri/lyrics-finder");
 const axios = require("axios");
 
+// Clean track title/artist for better API search results
+function cleanTitle(str) {
+    return (str || '')
+        .replace(/\s*\(feat\.?.*?\)/gi, '')
+        .replace(/\s*\[.*?\]/g, '')
+        .replace(/\s*-\s*(official|lyrics?|video|audio|hd|4k|music video|lyric video).*$/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+}
+
 class LyricsManager {
-    constructor() {
-        this.sources = [
-            this.fetchFromLyricsFinder.bind(this),
-            this.fetchFromLRCLib.bind(this),
-            this.fetchFromGenius.bind(this),
-        ];
-    }
-
-    async fetchFromLyricsFinder(title, artist) {
-        try {
-            const lyrics = await lyricsFinder(artist, title);
-            if (lyrics && lyrics.length > 0) {
-                return { lyrics: lyrics, source: "Lyrics Finder", synced: null };
-            }
-        } catch (error) {
-            return null;
-        }
-        return null;
-    }
-
+    // Try LRCLib search (works reliably)
     async fetchFromLRCLib(title, artist) {
         try {
+            const cleanT = cleanTitle(title);
+            const cleanA = cleanTitle(artist);
             const response = await axios.get(
-                `https://lrclib.net/api/search?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`,
-                { timeout: 5000 }
+                `https://lrclib.net/api/search?track_name=${encodeURIComponent(cleanT)}&artist_name=${encodeURIComponent(cleanA)}`,
+                { timeout: 6000 }
             );
-
             if (response.data && response.data.length > 0) {
                 const result = response.data[0];
-                return {
-                    lyrics: result.plainLyrics || result.syncedLyrics,
-                    source: "LRClib",
-                    synced: result.syncedLyrics || null,
-                };
+                const lyrics = result.plainLyrics || result.syncedLyrics;
+                if (lyrics) return { lyrics, source: "LRCLib", synced: result.syncedLyrics || null };
             }
-        } catch (error) {
-            return null;
-        }
+        } catch { return null; }
         return null;
     }
 
-    async fetchFromGenius(title, artist) {
+    // LRCLib direct GET — more accurate when title matches exactly
+    async fetchFromLRCLibDirect(title, artist) {
         try {
-            const query = `${artist} ${title}`.trim();
+            const cleanT = cleanTitle(title);
+            const cleanA = cleanTitle(artist);
             const response = await axios.get(
-                `https://some-random-api.com/lyrics?title=${encodeURIComponent(query)}`,
-                { timeout: 5000 }
+                `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanA)}&track_name=${encodeURIComponent(cleanT)}`,
+                { timeout: 6000 }
             );
-
-            if (response.data && response.data.lyrics) {
-                return { lyrics: response.data.lyrics, source: "Some Random API", synced: null };
+            if (response.data && response.data.plainLyrics) {
+                return {
+                    lyrics: response.data.plainLyrics,
+                    source: "LRCLib",
+                    synced: response.data.syncedLyrics || null,
+                };
             }
-        } catch (error) {
-            return null;
-        }
+        } catch { return null; }
+        return null;
+    }
+
+    // Fallback: search LRCLib by title only (artist-agnostic)
+    async fetchFromLRCLibTitleOnly(title) {
+        try {
+            const cleanT = cleanTitle(title);
+            const response = await axios.get(
+                `https://lrclib.net/api/search?q=${encodeURIComponent(cleanT)}`,
+                { timeout: 6000 }
+            );
+            if (response.data && response.data.length > 0) {
+                const result = response.data[0];
+                const lyrics = result.plainLyrics || result.syncedLyrics;
+                if (lyrics) return { lyrics, source: "LRCLib", synced: result.syncedLyrics || null };
+            }
+        } catch { return null; }
         return null;
     }
 
     async fetchLyrics(title, artist) {
-        for (const source of this.sources) {
+        const sources = [
+            () => this.fetchFromLRCLibDirect(title, artist),
+            () => this.fetchFromLRCLib(title, artist),
+            () => this.fetchFromLRCLibTitleOnly(title),
+        ];
+        for (const source of sources) {
             try {
-                const result = await source(title, artist);
-                if (result && result.lyrics) {
-                    return result;
-                }
-            } catch (error) {
-                continue;
-            }
+                const result = await source();
+                if (result && result.lyrics) return result;
+            } catch { continue; }
         }
         return null;
     }

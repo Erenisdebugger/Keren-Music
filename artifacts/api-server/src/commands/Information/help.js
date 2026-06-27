@@ -287,7 +287,7 @@ module.exports = {
             label: 'Home',
             value: 'home',
             description: 'Go back to homepage',
-            emoji: { name: '🏠', id: null, animated: false }
+            emoji: { name: '🏠' }
         });
 
         const selectMenu = new StringSelectMenuBuilder()
@@ -600,7 +600,7 @@ module.exports = {
             label: 'Home',
             value: 'home',
             description: 'Go back to homepage',
-            emoji: { name: '🏠', id: null, animated: false }
+            emoji: { name: '🏠' }
         });
 
         const selectMenu = new StringSelectMenuBuilder()
